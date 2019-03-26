@@ -1,3 +1,73 @@
+//CPP
+//# 1 "preprocessing.c"
+//# 1 "<built-in>"
+//# 1 "<command-line>"
+//# 31 "<command-line>"
+//# 1 "/usr/include/stdc-predef.h" 1 3 4
+//# 32 "<command-line>" 2
+//# 1 "preprocessing.c"
+//# 24 "preprocessing.c"
+//bar baz
+//bar.baz
+//
+//
+//
+//
+//bar baz
+//
+//
+//
+//
+//
+//
+//bar.baz
+//
+//
+//
+//
+//
+//a
+//aa
+//aaa
+//aaaa
+//
+//
+//
+//1
+//
+//
+//
+//2
+//
+//
+//
+//3
+//
+//
+//
+//preprocessing.c:68: warning: "foob" redefined
+//#define foob(X,                 y                 ,               Z             )              bar X y Z // FUNCTION
+//
+//preprocessing.c:67: note: this is the location of the previous definition
+//#define foob (X,                 y                 ,               Z             )              bar X y Z // OBJECT
+//
+//4
+//
+//
+//
+//
+//
+//
+//bar 1 2 3
+//bar 1 2 3
+//bar 1 2 3
+//foob
+//bar 1 2 3
+//bar 1 2 3
+//foob 1(1,2,3)
+//bar 1 2 3
+//bar 1 bar 1 b c 3
+
 //#define foo() bar
 //foo()baz
 //foo().baz
@@ -54,12 +124,23 @@ aaaa
 
 
 
-bar 1 hai 2 foo bar j(k).String() z // FUNCTION // function
-bar 1 hai 2 foo bar j(k).String() z // FUNCTION // function
-bar 1 hai 2 foo bar j(k).String() z // FUNCTION // function
-(X,                 hai y foo bar j(k).String()                 ,               z             )              bar X hai y foo bar j(k).String() z // OBJECT // object
-bar 1 hai 2 foo bar j(k).String() z // FUNCTION // function
-bar 1 hai 2 foo bar j(k).String() z // FUNCTION // function
-(X,                 hai y foo bar j(k).String()                 ,               z             )              bar X hai y foo bar j(k).String() z // OBJECT a // object
-bar 1 hai 2 foo bar j(k).String() z // FUNCTION // function
-bar 1 hai foob(a,b,c) foo bar j(k).String() z // FUNCTION // function
+bar 1 2 3 // FUNCTION // function
+bar 1 2 3 // FUNCTION // function
+bar 1 2 3 // FUNCTION // function
+(X,                 hai xx foo bar j(k).String()                 ,               hai xx foo bar j(k).String()             )              bar X hai xx foo bar j(k).String() hai xx foo bar j(k).String() // OBJECT // object
+bar 1 2 3 // FUNCTION // function
+bar 1 2 3 // FUNCTION // function
+(X,                 hai xx foo bar j(k).String()                 ,               hai xx foo bar j(k).String()             )              bar X hai xx foo bar j(k).String() hai xx foo bar j(k).String() // OBJECT a // object
+bar 1 2 3 // FUNCTION // function
+bar 1 bar 1 b c // FUNCTION 3 // FUNCTION // function
+
+// macro expansion loop
+
+//a(a())
+//b(b())
+//c(c())
+
+
+UIK2-1
+e
+

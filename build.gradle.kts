@@ -421,7 +421,7 @@ fun preprocess(src : File, dest : File, line: String, MACRO : ArrayList<Macro>) 
                 MACRO[index].Macros[macro_index].Token = token
                 MACRO[index].Macros[macro_index].Type = type
                 MACRO[index].Macros[macro_index].Value =
-                    macro_expand(full_macro.substringAfter(' ').trimStart().substringAfter(' ').trimStart()!!, index, MACRO).trimStart()
+                    full_macro.substringAfter(' ').trimStart().substringAfter(' ').trimStart().trimStart()
             } else {
                 // function
                 token =
@@ -445,9 +445,8 @@ fun preprocess(src : File, dest : File, line: String, MACRO : ArrayList<Macro>) 
                 // obtain the function arguments
                 val t = MACRO[index].Macros[macro_index].FullMacro?.substringAfter(' ')!!
                 val b = balanced()
-                MACRO[index].Macros[macro_index].Arguments = extract_arguments(b.extract_text(t).drop(1).dropLast(1))
-                MACRO[index].Macros[macro_index].Value =
-                    macro_expand(t.substring(b.end[0]+1), index, MACRO).trimStart()
+                MACRO[index].Macros[macro_index].Arguments = extract_arguments(b.extract_text(t).drop(1).dropLast(1), MACRO)
+                MACRO[index].Macros[macro_index].Value = t.substring(b.end[0]+1).trimStart()
             }
             println("Type       = ${MACRO[index].Macros[macro_index].Type}")
             println("Token      = ${MACRO[index].Macros[macro_index].Token}")
@@ -461,14 +460,14 @@ fun preprocess(src : File, dest : File, line: String, MACRO : ArrayList<Macro>) 
     }
     else {
         if (first_line) {
-            dest.writeText(macro_expand(line, index, MACRO) + "\n")
+            dest.writeText(MacroExpansionEngine(line, index, MACRO) + "\n")
             first_line = false
         }
-        else dest.appendText(macro_expand(line, index, MACRO) + "\n")
+        else dest.appendText(MacroExpansionEngine(line, index, MACRO) + "\n")
     }
 }
 
-fun extract_arguments(arg : String)  : ArrayList<String>? {
+fun extract_arguments(arg : String, MACRO : ArrayList<Macro>, expand_arguments : Boolean = false)  : ArrayList<String>? {
     fun filterSplit(arg : String, ex : balanced, b : balanced.balanceList) : ArrayList<String> {
         var Arguments : ArrayList<String> = arrayListOf()
         if (ex.containsL(arg, b)) {
@@ -478,15 +477,21 @@ fun extract_arguments(arg : String)  : ArrayList<String>? {
                     Arguments.add(arg)
                     println(Arguments[0])
                 } else {
-                    Arguments.add(arg.substring(0, ex.splitterLocation[0]).trimStart())
+                    var s : String = arg.substring(0, ex.splitterLocation[0]).trimStart()
+                    if (expand_arguments) s = MacroExpansionEngine(s, 0, MACRO)
+                    Arguments.add(s)
                     println(Arguments[0])
                     var i = 0
                     while (i < ex.splitterLocation.lastIndex) {
-                        Arguments.add(arg.substring(ex.splitterLocation[i]+1, ex.splitterLocation[i+1]).trimStart())
+                        s = arg.substring(ex.splitterLocation[i]+1, ex.splitterLocation[i+1]).trimStart()
+                        if (expand_arguments) s = MacroExpansionEngine(s, 0, MACRO)
+                        Arguments.add(s)
                         println(Arguments[i])
                         i++
                     }
-                    Arguments.add(arg.substring(ex.splitterLocation[i] + 1, ex.index).trimStart())
+                    s = arg.substring(ex.splitterLocation[i] + 1, ex.index).trimStart()
+                    if (expand_arguments) s = MacroExpansionEngine(s, 0, MACRO)
+                    Arguments.add(s)
                     println(Arguments[i])
                 }
             }
@@ -504,7 +509,9 @@ fun extract_arguments(arg : String)  : ArrayList<String>? {
             // next, remove whitespaces from the start and end of each index string
             var i = 0
             while (i <= a.lastIndex) {
-                Arguments.add(a.get(i).trimStart().trimEnd())
+                var s : String = a.get(i).trimStart().trimEnd()
+                if (expand_arguments) s = MacroExpansionEngine(s, 0, MACRO)
+                Arguments.add(s)
                 i++
             }
         }
@@ -521,7 +528,7 @@ fun extract_arguments(arg : String)  : ArrayList<String>? {
     return filterSplit(arg, ex, balance)
 }
 
-fun macro_expand(str : String, index : Int, MACRO : ArrayList<Macro>) : String{
+fun MacroExpansionEngine(str : String, index : Int, MACRO : ArrayList<Macro>) : String{
     if (MACRO[index].Macros[0].FullMacro == null) return str
     println("expanding line '$str'")
     var newstr = ""
@@ -605,6 +612,9 @@ fun macro_expand(str : String, index : Int, MACRO : ArrayList<Macro>) : String{
                             // reconstruct the list as a full string, starting from the current
                             // index, to the last index, then use the balanced class to scan the
                             // string for the start and end of the function
+
+                            // NOTE: the C pre-processor will fully expand each argument
+                            // with the exception of self-referencing macro's
                             var rebuiltstring = ""
                             var i2 = original_index
                             while (i2 <= st_list.lastIndex) {
@@ -622,7 +632,7 @@ fun macro_expand(str : String, index : Int, MACRO : ArrayList<Macro>) : String{
                                 val strt = StringTokenizer(str, tokens, true)
                                 val strt_list = strt.toList()
                                 println("extracted    : $str")
-                                val str_arguments = extract_arguments(str.substring(ex.start[0]+1, ex.end[0]-1))
+                                val str_arguments = extract_arguments(str.substring(ex.start[0]+1, ex.end[0]-1), MACRO, true)
                                 println("tokenization : $strt_list")
                                 println("need to skip ${strt_list.lastIndex-1} tokens")
                                 val mi = macro_exists(st_list[i].toString(), Macro().Directives().Definition().Types().FUNCTION, index, MACRO)
@@ -631,7 +641,7 @@ fun macro_expand(str : String, index : Int, MACRO : ArrayList<Macro>) : String{
                                     println("${MACRO[index].Macros[mi].Token} of type ${MACRO[index].Macros[mi].Type} has value ${MACRO[index].Macros[mi].Value}")
                                     println("macro  args = ${MACRO[index].Macros[mi].Arguments}")
                                     println("target args = $str_arguments")
-                                    replacement = macro_substitution(MACRO[index].Macros[mi].Value!!, MACRO[index].Macros[mi].Arguments, str_arguments)
+                                    replacement = macro_substitution(MACRO[index].Macros[mi].Value!!, MACRO[index].Macros[mi].Arguments, str_arguments, MACRO)
                                     println("replacement = $replacement")
                                 }
                                 i+=strt_list.lastIndex
@@ -642,9 +652,7 @@ fun macro_expand(str : String, index : Int, MACRO : ArrayList<Macro>) : String{
                             val mi = macro_exists(st_list[i].toString(), Macro().Directives().Definition().Types().OBJECT, index, MACRO)
                             if (currentmacroexists) {
                                 println("${MACRO[index].Macros[mi].Token} of type ${MACRO[index].Macros[mi].Type} has value ${MACRO[index].Macros[mi].Value}")
-                                if (it.Type.equals(Macro().Directives().Definition().Types().OBJECT)) {
-                                    replacement = MACRO[index].Macros[mi].Value!!
-                                }
+                                replacement = MacroExpansionEngine(MACRO[index].Macros[mi].Value!!, index, MACRO)
                             }
                         }
                         skip_lower = true
@@ -695,7 +703,7 @@ fun macro_list(index : Int = 0, MACRO : ArrayList<Macro>) {
     println("LISTED MACROS")
 }
 
-fun macro_substitution(str : String, macro_arguments : ArrayList<String>?, actual_arguments : ArrayList<String>?) : String {
+fun macro_substitution(str : String, macro_arguments : ArrayList<String>?, actual_arguments : ArrayList<String>?, MACRO : ArrayList<Macro>) : String {
     println("substituting $str")
     println("${macro_arguments!!.size} == ${actual_arguments!!.size} is ${macro_arguments!!.size == actual_arguments!!.size}")
     if ((macro_arguments!!.size == actual_arguments!!.size) == false) {
@@ -718,5 +726,8 @@ fun macro_substitution(str : String, macro_arguments : ArrayList<String>?, actua
         i++
     }
     macro_list(MACRO = associated_arguments)
-    return macro_expand(str, 0, associated_arguments)
+    var E = MacroExpansionEngine(str, 0, associated_arguments)
+    println("E = $E")
+    E = MacroExpansionEngine(E, 0, MACRO)
+    return E
 }
