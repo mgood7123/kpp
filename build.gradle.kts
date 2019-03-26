@@ -8,9 +8,9 @@ fun abortk(e : String = "Aborted") {
     throw GradleException(e)
 }
 
-val KPP_DIR : String = rootDir.toString() + "/KPP"
+val kpp_DIR : String = rootDir.toString() + "/kpp"
 
-var KPP_MACRO_LIST = arrayListOf(Macro())
+var kpp_MACRO_LIST = arrayListOf(Macro())
 
 class Macro() {
     inner class Directives() {
@@ -170,7 +170,7 @@ var first_line : Boolean = true
 
 fun initiate(src : File) {
     val source = src.toString()
-    val dest = KPP_DIR + src.toString().removePrefix(projectDir.toString())
+    val dest = kpp_DIR + src.toString().removePrefix(projectDir.toString())
     current_file_contains_preprocesser = false
     cached_file_contains_preprocesser = false
     current_file_is_cashed = false
@@ -181,20 +181,20 @@ fun initiate(src : File) {
         if (!cached_file_contains_preprocesser) {
             // if dest no longer contains preprocessing info, copy it back to src, overwriting the current src, and use src
             if (cp(dest, source, true)) { // copy dest to source
-                println("${dest.substringAfterLast('/')} (in KPP/src) moved back to original source")
+                println("${dest.substringAfterLast('/')} (in kpp/src) moved back to original source")
                 file(dest).delete()
                 if (file(dest + ".preprocessed.kt").exists()) file(dest + ".preprocessed.kt").delete()
             }
-            else throw GradleException("failed to move ${dest} (in KPP/src) to $source")
+            else throw GradleException("failed to move ${dest} (in kpp/src) to $source")
         }
         else {
             // if dest already exist use dest
-            println("using ${dest.substringAfterLast('/')} in KPP/src")
+            println("using ${dest.substringAfterLast('/')} in kpp/src")
             process(src, dest)
             if (cp(dest + ".preprocessed.kt", source, true)) {
-                println("${dest.substringAfterLast('/')}.preprocessed.kt (in KPP/src) copied back to original source")
+                println("${dest.substringAfterLast('/')}.preprocessed.kt (in kpp/src) copied back to original source")
             }
-            else throw GradleException("failed to copy ${dest}.preprocessed.kt (in KPP/src) to $source")
+            else throw GradleException("failed to copy ${dest}.preprocessed.kt (in kpp/src) to $source")
         }
     }
     else {
@@ -204,15 +204,15 @@ fun initiate(src : File) {
         } else {
             // if src contains preprocessing info, copy it to dest and use dest
             if (cp(source, dest, true)) { // copy if dest does not exist
-                println("original ${dest.substringAfterLast('/')} added to KPP/src")
+                println("original ${dest.substringAfterLast('/')} added to kpp/src")
             }
             else throw GradleException("failed to copy $source to $dest")
-            println("using ${dest.substringAfterLast('/')} in KPP/src")
+            println("using ${dest.substringAfterLast('/')} in kpp/src")
             process(src, dest)
             if (cp(dest + ".preprocessed.kt", source, true)) { // copy back to source
-                println("${dest.substringAfterLast('/')}.preprocessed.kt (in KPP/src) copied back to original source")
+                println("${dest.substringAfterLast('/')}.preprocessed.kt (in kpp/src) copied back to original source")
             }
-            else throw GradleException("failed to copy ${dest}.preprocessed.kt (in KPP/src) to $source")
+            else throw GradleException("failed to copy ${dest}.preprocessed.kt (in kpp/src) to $source")
         }
     }
 }
@@ -220,12 +220,12 @@ fun initiate(src : File) {
 fun process(orig : File, src : String) {
     val lines: List<String> = file(src).readLines()
     val DESTPRE: File = file(src + ".preprocessed.kt")
-    if (KPP_MACRO_LIST[0].FileName != null) {
-        KPP_MACRO_LIST = KPP_MACRO_LIST[0].realloc(KPP_MACRO_LIST, KPP_MACRO_LIST[0].size+1)
+    if (kpp_MACRO_LIST[0].FileName != null) {
+        kpp_MACRO_LIST = kpp_MACRO_LIST[0].realloc(kpp_MACRO_LIST, kpp_MACRO_LIST[0].size+1)
     }
-    KPP_MACRO_LIST[0].FileName = orig.name
-    println("registered macro definition for ${KPP_MACRO_LIST[0].FileName} at index ${KPP_MACRO_LIST[0].size}")
-    println("processing ${KPP_MACRO_LIST[0].FileName} -> ${DESTPRE.name}")
+    kpp_MACRO_LIST[0].FileName = orig.name
+    println("registered macro definition for ${kpp_MACRO_LIST[0].FileName} at index ${kpp_MACRO_LIST[0].size}")
+    println("processing ${kpp_MACRO_LIST[0].FileName} -> ${DESTPRE.name}")
     DESTPRE.createNewFile()
     lines.forEach { line ->
         preprocess(orig, DESTPRE, line)
@@ -383,13 +383,13 @@ class balanced {
 
 }
 fun preprocess(src : File, dest : File, line: String) {
-    val index = KPP_MACRO_LIST[0].size - 1
+    val index = kpp_MACRO_LIST[0].size - 1
     if (line.trimStart().startsWith('#')) {
         val directive = line.trimStart().drop(1).trimStart().substringBefore(' ')
         println("${src.name}: preprocessor directive: $directive")
         println("${src.name}: preprocessor line: ${line.trimStart()}")
         if (directive.equals(Macro().Directives().Definition().value)) {
-            var macro_index = KPP_MACRO_LIST[index].Macros[0].size
+            var macro_index = kpp_MACRO_LIST[index].Macros[0].size
             // to include the ability to redefine existing definitions, we must save to local variables first
             val full_macro : String = line.trimStart().drop(1).trimStart()
             var type : String? = null
@@ -408,18 +408,18 @@ fun preprocess(src : File, dest : File, line: String) {
                     macro_index = i
                 }
                 else {
-                    if (KPP_MACRO_LIST[index].Macros[macro_index].FullMacro != null) {
-                        KPP_MACRO_LIST[index].Macros = KPP_MACRO_LIST[index].Macros[0].realloc(
-                            KPP_MACRO_LIST[index].Macros,
-                            KPP_MACRO_LIST[index].Macros[0].size + 1
+                    if (kpp_MACRO_LIST[index].Macros[macro_index].FullMacro != null) {
+                        kpp_MACRO_LIST[index].Macros = kpp_MACRO_LIST[index].Macros[0].realloc(
+                            kpp_MACRO_LIST[index].Macros,
+                            kpp_MACRO_LIST[index].Macros[0].size + 1
                         )
                     }
-                    macro_index = KPP_MACRO_LIST[index].Macros[0].size
+                    macro_index = kpp_MACRO_LIST[index].Macros[0].size
                 }
-                KPP_MACRO_LIST[index].Macros[macro_index].FullMacro = line.trimStart().trimEnd()
-                KPP_MACRO_LIST[index].Macros[macro_index].Token = token
-                KPP_MACRO_LIST[index].Macros[macro_index].Type = type
-                KPP_MACRO_LIST[index].Macros[macro_index].Value =
+                kpp_MACRO_LIST[index].Macros[macro_index].FullMacro = line.trimStart().trimEnd()
+                kpp_MACRO_LIST[index].Macros[macro_index].Token = token
+                kpp_MACRO_LIST[index].Macros[macro_index].Type = type
+                kpp_MACRO_LIST[index].Macros[macro_index].Value =
                     macro_expand(full_macro.substringAfter(' ').trimStart().substringAfter(' ').trimStart()!!, index)
             } else {
                 // function
@@ -430,29 +430,29 @@ fun preprocess(src : File, dest : File, line: String) {
                     macro_index = i
                 }
                 else {
-                    if (KPP_MACRO_LIST[index].Macros[macro_index].FullMacro != null) {
-                        KPP_MACRO_LIST[index].Macros = KPP_MACRO_LIST[index].Macros[0].realloc(
-                            KPP_MACRO_LIST[index].Macros,
-                            KPP_MACRO_LIST[index].Macros[0].size + 1
+                    if (kpp_MACRO_LIST[index].Macros[macro_index].FullMacro != null) {
+                        kpp_MACRO_LIST[index].Macros = kpp_MACRO_LIST[index].Macros[0].realloc(
+                            kpp_MACRO_LIST[index].Macros,
+                            kpp_MACRO_LIST[index].Macros[0].size + 1
                         )
                     }
-                    macro_index = KPP_MACRO_LIST[index].Macros[0].size
+                    macro_index = kpp_MACRO_LIST[index].Macros[0].size
                 }
-                KPP_MACRO_LIST[index].Macros[macro_index].FullMacro = line.trimStart().trimEnd()
-                KPP_MACRO_LIST[index].Macros[macro_index].Token = token
-                KPP_MACRO_LIST[index].Macros[macro_index].Type = type
+                kpp_MACRO_LIST[index].Macros[macro_index].FullMacro = line.trimStart().trimEnd()
+                kpp_MACRO_LIST[index].Macros[macro_index].Token = token
+                kpp_MACRO_LIST[index].Macros[macro_index].Type = type
                 // obtain the function arguments
-                val t = KPP_MACRO_LIST[index].Macros[macro_index].FullMacro?.substringAfter(' ')!!
+                val t = kpp_MACRO_LIST[index].Macros[macro_index].FullMacro?.substringAfter(' ')!!
                 val b = balanced()
-                KPP_MACRO_LIST[index].Macros[macro_index].Arguments = extract_arguments(b.extract_text(t).drop(1).dropLast(1))
-                KPP_MACRO_LIST[index].Macros[macro_index].Value =
+                kpp_MACRO_LIST[index].Macros[macro_index].Arguments = extract_arguments(b.extract_text(t).drop(1).dropLast(1))
+                kpp_MACRO_LIST[index].Macros[macro_index].Value =
                     macro_expand(t.substring(b.end[0]+1), index)
             }
-            println("Type       = ${KPP_MACRO_LIST[index].Macros[macro_index].Type}")
-            println("Token      = ${KPP_MACRO_LIST[index].Macros[macro_index].Token}")
-            if (KPP_MACRO_LIST[index].Macros[macro_index].Arguments != null)
-                println("Arguments  = ${KPP_MACRO_LIST[index].Macros[macro_index].Arguments}")
-            println("Value      = ${KPP_MACRO_LIST[index].Macros[macro_index].Value}")
+            println("Type       = ${kpp_MACRO_LIST[index].Macros[macro_index].Type}")
+            println("Token      = ${kpp_MACRO_LIST[index].Macros[macro_index].Token}")
+            if (kpp_MACRO_LIST[index].Macros[macro_index].Arguments != null)
+                println("Arguments  = ${kpp_MACRO_LIST[index].Macros[macro_index].Arguments}")
+            println("Value      = ${kpp_MACRO_LIST[index].Macros[macro_index].Value}")
             macro_list(index)
             // definition names do not expand
             // definition values do expand
@@ -521,7 +521,7 @@ fun extract_arguments(arg : String)  : ArrayList<String>? {
 }
 
 fun macro_expand(str : String, index : Int) : String{
-    if (KPP_MACRO_LIST[index].Macros[0].FullMacro == null) return str
+    if (kpp_MACRO_LIST[index].Macros[0].FullMacro == null) return str
     println("expanding line '$str'")
     var newstr = ""
     val tokens = " ().,->"
@@ -545,7 +545,7 @@ fun macro_expand(str : String, index : Int) : String{
         }
         if (!skip) {
             var skip_lower = false
-            KPP_MACRO_LIST[index].Macros.forEach {
+            kpp_MACRO_LIST[index].Macros.forEach {
                 // this will fail if the macro is defined as empty
                 if (it.Value == null) skip_lower = true
                 // if token matches any macros we stop searching through the macro list
@@ -629,10 +629,10 @@ fun macro_exists(token : String, type : String, index : Int) : Int {
     // used to detect existing definitions for #define
     currentmacroexists = false
     // if empty return 0 and do not set currentmacroexists
-    if (KPP_MACRO_LIST[index].Macros[0].FullMacro == null) return 0
+    if (kpp_MACRO_LIST[index].Macros[0].FullMacro == null) return 0
     var i = 0
-    while (i <= KPP_MACRO_LIST[index].Macros.lastIndex) {
-        if (KPP_MACRO_LIST[index].Macros[i].Token.equals(token) && KPP_MACRO_LIST[index].Macros[i].Type.equals(type)) {
+    while (i <= kpp_MACRO_LIST[index].Macros.lastIndex) {
+        if (kpp_MACRO_LIST[index].Macros[i].Token.equals(token) && kpp_MACRO_LIST[index].Macros[i].Type.equals(type)) {
             println("token and type matches existing definition")
             currentmacroexists = true
             break
@@ -643,16 +643,16 @@ fun macro_exists(token : String, type : String, index : Int) : Int {
 }
 
 fun macro_list(index : Int) {
-    if (KPP_MACRO_LIST[index].Macros[0].FullMacro == null) return
+    if (kpp_MACRO_LIST[index].Macros[0].FullMacro == null) return
     println("LISTING MACROS")
     var i = 0
-    while (i <= KPP_MACRO_LIST[index].Macros.lastIndex) {
-        println("[$i].FullMacro  = ${KPP_MACRO_LIST[index].Macros[i].FullMacro}")
-        println("[$i].Type       = ${KPP_MACRO_LIST[index].Macros[i].Type}")
-        println("[$i].Token      = ${KPP_MACRO_LIST[index].Macros[i].Token}")
-        if (KPP_MACRO_LIST[index].Macros[i].Arguments != null)
-            println("[$i].Arguments  = ${KPP_MACRO_LIST[index].Macros[i].Arguments}")
-        println("[$i].Value      = ${KPP_MACRO_LIST[index].Macros[i].Value}")
+    while (i <= kpp_MACRO_LIST[index].Macros.lastIndex) {
+        println("[$i].FullMacro  = ${kpp_MACRO_LIST[index].Macros[i].FullMacro}")
+        println("[$i].Type       = ${kpp_MACRO_LIST[index].Macros[i].Type}")
+        println("[$i].Token      = ${kpp_MACRO_LIST[index].Macros[i].Token}")
+        if (kpp_MACRO_LIST[index].Macros[i].Arguments != null)
+            println("[$i].Arguments  = ${kpp_MACRO_LIST[index].Macros[i].Arguments}")
+        println("[$i].Value      = ${kpp_MACRO_LIST[index].Macros[i].Value}")
         i++
     }
     println("LISTED MACROS")

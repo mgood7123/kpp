@@ -72,12 +72,21 @@ given this, the verbose log of KPP is maintained in the Build tabs console view,
 ones build might look like this
 
 ```
-Executing tasks: [:app:assembleDebug]
-
+sync failed	19 s 923 ms
+Run build	19 s 279 ms
+    Load build	161 ms
+        Run init scripts	145 ms
+        Evaluate settings	16 ms
+    Configure build	19 s 49 ms
+        Load projects	14 ms
+        Configure project :	711 ms
+            Register task :init
+            Register task :wrapper	1 ms
+        Configure project :app	18 s 302 ms
 
 > Configure project :app
 starting KOTLIN_PRE_PROCESSOR
-using preprocessing examples.kt in KPP/src
+using preprocessing examples.kt in kpp/src
 registered macro definition for preprocessing examples.kt at index 1
 processing preprocessing examples.kt -> preprocessing examples.kt.preprocessed.kt
 preprocessing examples.kt: preprocessor directive: define
@@ -149,7 +158,7 @@ expanding line ''
 tokens to ignore : [ , (, ), ., ,, -, >]
 tokenization : []
 expanded string :
-preprocessing examples.kt.preprocessed.kt (in KPP/src) copied back to original source
+preprocessing examples.kt.preprocessed.kt (in kpp/src) copied back to original source
 KOTLIN_PRE_PROCESSOR finished
 
 FAILURE: Build failed with an exception.
@@ -167,7 +176,9 @@ Run with --stacktrace option to get the stack trace. Run with --info or --debug 
 
 * Get more help at https://help.gradle.org
 
-BUILD FAILED in 17s
+CONFIGURE FAILED in 19s
+Aborted
+Open File
 ```
 
 this is taken at the time of this documents writing, and at the current state of KPP
