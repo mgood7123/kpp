@@ -420,7 +420,7 @@ fun preprocess(src : File, dest : File, line: String) {
                 kpp_MACRO_LIST[index].Macros[macro_index].Token = token
                 kpp_MACRO_LIST[index].Macros[macro_index].Type = type
                 kpp_MACRO_LIST[index].Macros[macro_index].Value =
-                    macro_expand(full_macro.substringAfter(' ').trimStart().substringAfter(' ').trimStart()!!, index)
+                    macro_expand(full_macro.substringAfter(' ').trimStart().substringAfter(' ').trimStart()!!, index).trimStart()
             } else {
                 // function
                 token =
@@ -446,7 +446,7 @@ fun preprocess(src : File, dest : File, line: String) {
                 val b = balanced()
                 kpp_MACRO_LIST[index].Macros[macro_index].Arguments = extract_arguments(b.extract_text(t).drop(1).dropLast(1))
                 kpp_MACRO_LIST[index].Macros[macro_index].Value =
-                    macro_expand(t.substring(b.end[0]+1), index)
+                    macro_expand(t.substring(b.end[0]+1), index).trimStart()
             }
             println("Type       = ${kpp_MACRO_LIST[index].Macros[macro_index].Type}")
             println("Token      = ${kpp_MACRO_LIST[index].Macros[macro_index].Token}")
@@ -551,7 +551,8 @@ fun macro_expand(str : String, index : Int) : String{
                 // if token matches any macros we stop searching through the macro list
                 if (!skip_lower) {
                     if (it.Token?.equals(st_list[i].toString()) == true) {
-                        println("${it.Token} of type matches ${st_list[i].toString()}")
+                        val original_index = i
+                        println("${it.Token} matches ${st_list[i].toString()}")
                         // once a token is matched, we match its type to ensure we are expanding the correct token
                         println("token list     = ${st_list[i].toString()}")
                         // the tricky part here is that all punctuation is included in the token list, this is required to correctly detect functions and possible syntax errors
@@ -603,15 +604,50 @@ fun macro_expand(str : String, index : Int) : String{
                             // reconstruct the list as a full string, starting from the current
                             // index, to the last index, then use the balanced class to scan the
                             // string for the start and end of the function
-
-
-
-//                            replacement = it.Value!!
+                            var rebuiltstring = ""
+                            var i2 = original_index
+                            while (i2 <= st_list.lastIndex) {
+                                rebuiltstring = rebuiltstring.plus(st_list[i2].toString())
+                                i2++
+                            }
+                            println("rebuilt string = $rebuiltstring")
+                            // first, determine the positions of all tokens
+                            var balance = balanced.balanceList()
+                            balance.addPair('(', ')')
+                            val ex = balanced()
+                            if (ex.isBalancedSplit(rebuiltstring, balance, ',')) {
+                                ex.info()
+                                val str = rebuiltstring.substring(0, ex.end[0])
+                                val strt = StringTokenizer(str, tokens, true)
+                                val strt_list = strt.toList()
+                                println("extracted    : $str")
+                                println("tokenization : $strt_list")
+                                println("need to skip ${strt_list.lastIndex-1} tokens")
+                                val mi = macro_exists(st_list[i].toString(), Macro().Directives().Definition().Types().FUNCTION, index)
+                                if (currentmacroexists) {
+                                    println("${kpp_MACRO_LIST[index].Macros[mi].Token} of type ${kpp_MACRO_LIST[index].Macros[mi].Type} has value ${kpp_MACRO_LIST[index].Macros[mi].Value}")
+                                    if (it.Type.equals(Macro().Directives().Definition().Types().FUNCTION)) {
+                                        replacement = kpp_MACRO_LIST[index].Macros[mi].Value!!
+                                        println("args = ${kpp_MACRO_LIST[index].Macros[mi].Arguments}")
+                                        println("replacement = $replacement")
+                                    }
+                                }
+//                                if (it.Type.equals(Macro().Directives().Definition().Types().FUNCTION)) {
+//                                    replacement = it.Value!!
+//                                }
+//                                else abortk("fatal error: type is not function")
+                                i+=strt_list.lastIndex
+                            }
                         }
                         else {
                             println("${st_list[i].toString()} is an object")
-                            println("${it.Token} of type ${it.Type} has value ${it.Value}")
-                            replacement = it.Value!!
+                            val mi = macro_exists(st_list[i].toString(), Macro().Directives().Definition().Types().OBJECT, index)
+                            if (currentmacroexists) {
+                                println("${kpp_MACRO_LIST[index].Macros[mi].Token} of type ${kpp_MACRO_LIST[index].Macros[mi].Type} has value ${kpp_MACRO_LIST[index].Macros[mi].Value}")
+                                if (it.Type.equals(Macro().Directives().Definition().Types().OBJECT)) {
+                                    replacement = kpp_MACRO_LIST[index].Macros[mi].Value!!
+                                }
+                            }
                         }
                         skip_lower = true
                     }
@@ -633,10 +669,11 @@ fun macro_exists(token : String, type : String, index : Int) : Int {
     var i = 0
     while (i <= kpp_MACRO_LIST[index].Macros.lastIndex) {
         if (kpp_MACRO_LIST[index].Macros[i].Token.equals(token) && kpp_MACRO_LIST[index].Macros[i].Type.equals(type)) {
-            println("token and type matches existing definition")
+            println("token and type matches existing definition ${kpp_MACRO_LIST[index].Macros[i].Token} type ${kpp_MACRO_LIST[index].Macros[i].Type}")
             currentmacroexists = true
             break
         }
+        else println("token $token or type $type does not match current definition token ${kpp_MACRO_LIST[index].Macros[i].Token} type ${kpp_MACRO_LIST[index].Macros[i].Type}")
         i++
     }
     return i

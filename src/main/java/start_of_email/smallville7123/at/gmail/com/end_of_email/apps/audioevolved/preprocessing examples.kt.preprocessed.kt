@@ -40,9 +40,7 @@
 //#define f2(1, 2, 3, 4) l
 //#define f3([1],[2],[3],[4]) l
 //fooa(1,2,3)
-//#define foob (X,                 y                 ,               Z             )              bar X y Z
-//foob (1,2,3)
-             bar X y Z a(1,2,3) // object
-foob (1,2,3) // function
-foob(1,2,3) // function
-
+//#define foob (X,                 y                 ,               Z             )              bar X y Z {OBJECT}
+//foob a(1,2,3) // object
+//foob (1,2,3) // function
+{X}{X} // {FUNCTION}{FUNTION}

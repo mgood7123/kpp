@@ -219,14 +219,3 @@ any other directives i may have missed
 # why not just use cpp
 
 cpp is intended for `C`, `C#`, and `C++` and as such produces unwanted text in its output, aswell as not properly supporting the kotlin language (using cpp on anything other than the C language set is considered abuse of the preprocessor, and may result in unintended side effects
-
-# search tags, ignore these
-kotlin pre processor
-
-kotlin pre-processor
-
-kotlin preprocessor
-
-kotlin-pre-processor
-
-kotlinpreprocessor
