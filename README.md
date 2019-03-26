@@ -191,9 +191,7 @@ the Aborted here is intentional as i am only focussing on KPP, and need not actu
 java is also going to be supported, but for now i am focusing on kotlin
 
 # implemented
-`#define`
-
-define directive currently supports object like macros, function macros are not yet supported
+`#define`   ( define directive fully supports object like macros, and function like macros )
 
 # yet to be implemented
 `#undef`
