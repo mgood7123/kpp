@@ -9,11 +9,11 @@ in project root
 git clone https://github.com/mgood7123/kpp
 ```
 
-by defailt, kpp's install directory is hardcoded to ProjectRoot/kpp, eg /home/superlock/AndroidStudioProjects/AudioEvolved/kpp where AudioEvolved is the ProjectRoot
+by defailt, kpp's install directory is hardcoded to ProjectRoot/kpp, eg `/home/superlock/AndroidStudioProjects/AudioEvolved/kpp` where `AudioEvolved` is the ProjectRoot
 
 in module you wish kpp to operate on
 
-for example, if i want KPP to process all files in /home/superlock/AndroidStudioProjects/AudioEvolved/app, i would append
+for example, if i want KPP to process all files in `/home/superlock/AndroidStudioProjects/AudioEvolved/app`, i would append
 ```
 apply from: '../kpp/build.gradle.kts'
 
