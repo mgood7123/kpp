@@ -1,12 +1,12 @@
 //CPP
-//# 1 "preprocessing.c"
+//# 1 "cpp test comparisions against kpp.c"
 //# 1 "<built-in>"
 //# 1 "<command-line>"
 //# 31 "<command-line>"
 //# 1 "/usr/include/stdc-predef.h" 1 3 4
 //# 32 "<command-line>" 2
-//# 1 "preprocessing.c"
-//# 24 "preprocessing.c"
+//# 1 "cpp test comparisions against kpp.c"
+//# 24 "cpp test comparisions against kpp.c"
 //bar baz
 //bar.baz
 //
@@ -45,10 +45,10 @@
 //
 //
 //
-//preprocessing.c:68: warning: "foob" redefined
+//cpp test comparisions against kpp.c:68: warning: "foob" redefined
 //#define foob(X,                 y                 ,               Z             )              bar X y Z // FUNCTION
 //
-//preprocessing.c:67: note: this is the location of the previous definition
+//cpp test comparisions against kpp.c:67: note: this is the location of the previous definition
 //#define foob (X,                 y                 ,               Z             )              bar X y Z // OBJECT
 //
 //4
