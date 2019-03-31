@@ -1,10 +1,78 @@
 import java.io.*
-import java.nio.file.Files.exists
+import java.nio.file.Files.*
 import java.util.*
 
-val abort_on_complete = true
+import java.io.File;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 
-fun abortk(e : String = "Aborted") {
+//import com.github.h0tk3y.betterParse.combinators.*
+//import com.github.h0tk3y.betterParse.grammar.Grammar
+//import com.github.h0tk3y.betterParse.grammar.parseToEnd
+//import com.github.h0tk3y.betterParse.grammar.parser
+//import com.github.h0tk3y.betterParse.parser.Parser
+
+class invokers() {
+    inner class information {
+        var name : String = ""
+        var paramater : String = ""
+    }
+
+    val info : MutableList<information> = mutableListOf()
+    val function : (String) -> Unit = { v : String -> println("invoked with paramater 'v' with value '$v'") }
+
+    fun add(name : String, paramater : String) {
+        this.info.add(information())
+        this.info[this.info.size-1].name = name
+        this.info[this.info.size-1].paramater = paramater
+    }
+    fun print() {
+        this.info.forEach({println("it.name = ${it.name}")})
+        this.info.forEach({println("it.paramater = ${it.paramater}")})
+    }
+
+    fun call(name : String) {
+        for (information in info) {
+            if (information.name.equals(name)) {
+                println("name exists: $name")
+                function(information.paramater)
+            }
+        }
+    }
+}
+
+fun t(){
+    val functionList = invokers()
+    functionList.add("h", "HAI")
+    functionList.print()
+    functionList.call("h")
+}
+
+tasks.register("KOTLIN_PRE_PROCESSOR") {
+    println("starting KOTLIN_PRE_PROCESSOR")
+    t()
+//    val tokens = tokenizeKotlinCode("val x = foo() + 10;")
+//    val parseTree = parseKotlinCode(tokens)
+    // or just `val parseTree = parseKotlinCode("val x = foo() + 10;")`
+
+//    println(parseTree)
+//    abort()
+//    Macro().test()
+    find_source_files(projectDir.toString(), "kt")
+    println("KOTLIN_PRE_PROCESSOR finished")
+    if (abort_on_complete) abort()
+}
+
+
+val abort_on_complete = true
+val tokensSpace = " \t"
+val tokensNewLine = "\n"
+val tokensExtra = "/*#().,->{}[]"
+val tokens = tokensSpace + tokensNewLine + tokensExtra
+val mtokens = " ().,->{}[]"
+
+fun abort(e : String = "Aborted") {
     throw GradleException(e)
 }
 
@@ -131,14 +199,6 @@ int main(void)
 }
 */
 
-tasks.register("KOTLIN_PRE_PROCESSOR") {
-    println("starting KOTLIN_PRE_PROCESSOR")
-//    Macro().test()
-    find_source_files(projectDir.toString(), "kt")
-    println("KOTLIN_PRE_PROCESSOR finished")
-    if (abort_on_complete) abortk()
-}
-
 fun find_source_files(Dir : String, ext : String) {
     var srcDir = file(Dir)
     srcDir?.listFiles().forEach {
@@ -217,24 +277,8 @@ fun initiate(src : File) {
     }
 }
 
-fun process(orig : File, src : String, MACROM : ArrayList<Macro>) {
-    val lines: List<String> = file(src).readLines()
-    val DESTPRE: File = file(src + ".preprocessed.kt")
-    var MACRO = MACROM
-    if (MACRO[0].FileName != null) {
-        MACRO = MACRO[0].realloc(MACRO, MACRO[0].size+1)
-    }
-    MACRO[0].FileName = orig.name
-    println("registered macro definition for ${MACRO[0].FileName} at index ${MACRO[0].size}")
-    println("processing ${MACRO[0].FileName} -> ${DESTPRE.name}")
-    DESTPRE.createNewFile()
-    lines.forEach { line ->
-        preprocess(orig, DESTPRE, line, MACRO)
-    }
-}
-
 fun test_file(src : File) {
-    val lines: List<String> = src.readLines()
+    val lines: List<String> = readAllLines(src.toPath())
     lines.forEach {
             line -> check_if_preprocessor_is_needed(line)
     }
@@ -245,7 +289,7 @@ fun check_if_preprocessor_is_needed(line: String) {
 }
 
 fun test_cache_file(src : File) {
-    val lines: List<String> = src.readLines()
+    val lines: List<String> = readAllLines(src.toPath())
     lines.forEach {
             line -> check_if_cachepreprocessor_is_needed(line)
     }
@@ -381,8 +425,8 @@ class balanced {
         println("splitter count     = $splitterCount")
         println("splitter location  = $splitterLocation")
     }
-
 }
+
 fun preprocess(src : File, dest : File, line: String, MACRO : ArrayList<Macro>) {
     val index = MACRO[0].size - 1
     if (line.trimStart().startsWith('#')) {
@@ -467,6 +511,543 @@ fun preprocess(src : File, dest : File, line: String, MACRO : ArrayList<Macro>) 
     }
 }
 
+fun processDefine(line: String, MACRO : ArrayList<Macro>) {
+    val index = MACRO[0].size - 1
+    var macro_index = MACRO[index].Macros[0].size
+    // to include the ability to redefine existing definitions, we must save to local variables first
+    val full_macro : String = line.trimStart().drop(1).trimStart()
+    var type : String = ""
+    // determine Token type
+    if (full_macro.substringAfter(' ').trimStart().substringBefore(' ').trimStart().equals(full_macro.substringAfter(' ').trimStart().substringBefore(' ').trimStart()?.substringBefore('('))!!)
+        type = Macro().Directives().Definition().Types().OBJECT
+    else
+        type = Macro().Directives().Definition().Types().FUNCTION
+    var token : String = ""
+    if (type.equals(Macro().Directives().Definition().Types().OBJECT)) {
+        // object
+        token =
+            full_macro.substringAfter(' ').trimStart().substringBefore(' ').trimStart()
+        val i = macro_exists(token, type, index, MACRO)
+        if (currentmacroexists) {
+            macro_index = i
+        }
+        else {
+            if (MACRO[index].Macros[macro_index].FullMacro != null) {
+                MACRO[index].Macros = MACRO[index].Macros[0].realloc(
+                    MACRO[index].Macros,
+                    MACRO[index].Macros[0].size + 1
+                )
+            }
+            macro_index = MACRO[index].Macros[0].size
+        }
+        MACRO[index].Macros[macro_index].FullMacro = line.trimStart().trimEnd()
+        MACRO[index].Macros[macro_index].Token = token
+        MACRO[index].Macros[macro_index].Type = type
+        MACRO[index].Macros[macro_index].Value =
+            full_macro.substringAfter(' ').trimStart().substringAfter(' ').trimStart().trimStart()
+    } else {
+        // function
+        token =
+            full_macro.substringAfter(' ').substringBefore('(').trimStart()
+        val i = macro_exists(token, type, index, MACRO)
+        if (currentmacroexists) {
+            macro_index = i
+        }
+        else {
+            if (MACRO[index].Macros[macro_index].FullMacro != null) {
+                MACRO[index].Macros = MACRO[index].Macros[0].realloc(
+                    MACRO[index].Macros,
+                    MACRO[index].Macros[0].size + 1
+                )
+            }
+            macro_index = MACRO[index].Macros[0].size
+        }
+        MACRO[index].Macros[macro_index].FullMacro = line.trimStart().trimEnd()
+        MACRO[index].Macros[macro_index].Token = token
+        MACRO[index].Macros[macro_index].Type = type
+        // obtain the function arguments
+        val t = MACRO[index].Macros[macro_index].FullMacro?.substringAfter(' ')!!
+        val b = balanced()
+        MACRO[index].Macros[macro_index].Arguments = extract_arguments(b.extract_text(t).drop(1).dropLast(1), MACRO)
+        MACRO[index].Macros[macro_index].Value = t.substring(b.end[0]+1).trimStart()
+    }
+    println("Type       = ${MACRO[index].Macros[macro_index].Type}")
+    println("Token      = ${MACRO[index].Macros[macro_index].Token}")
+    if (MACRO[index].Macros[macro_index].Arguments != null)
+        println("Arguments  = ${MACRO[index].Macros[macro_index].Arguments}")
+    println("Value      = ${MACRO[index].Macros[macro_index].Value}")
+    macro_list(index, MACRO)
+    // definition names do not expand
+    // definition values do expand
+}
+
+fun stringToDeque(str : String) : ArrayDeque<String> {
+    var deq = ArrayDeque<String>()
+    var i = 0
+    while (i < str.length) deq.addLast(str[i++].toChar().toString())
+    return deq
+}
+
+fun dequeToString(d : ArrayDeque<String>) : String {
+    val result = StringBuffer()
+    val dq = d.iterator()
+    while(dq.hasNext()) {
+        result.append(dq.next())
+    }
+    return result.toString()
+}
+
+fun fileToByteBuffer(f : File) : ByteBuffer {
+    val file = RandomAccessFile(f, "r")
+    val fileChannel = file.getChannel()
+
+    var i = 0
+    var buffer = ByteBuffer.allocate(fileChannel.size().toInt())
+    fileChannel.read(buffer)
+    buffer.flip()
+    return buffer
+}
+
+class lexer(stm : ByteBuffer, delimiter : String) {
+    val f = stm
+    val delimiters = delimiter
+    val d = stringToDeque(delimiters)
+
+    inner class internallineinfo {
+        inner class default {
+            var column = 1
+            var line = 1
+        }
+        var column = default().column
+        var line = default().line
+    }
+
+    var lineinfo = internallineinfo()
+
+    // for some reason, a ByteBuffer cannot be instanced inside a class inside a
+    // class/function, this is related to DSL kotlin
+
+/*
+    fun clone() : lexer {
+        return lexerClone(this)
+    }
+
+    fun clone(newdelimiters : String) : lexer {
+        return lexerClone(this, newdelimiters)
+    }
+*/
+
+    fun lex() : String? {
+        /*
+        in order to make a lexer, we traditionally process the input file
+        character by character, appending each to a buffer, then returning
+        that buffer when a specific delimiter is found
+        */
+        var isdelim = false
+        if (f.remaining() == 0) return null
+        var b = StringBuffer()
+        while(f.remaining() != 0 && !isdelim) {
+            var s = f.get().toChar().toString()
+            b.append(s)
+            if (s == "\n") {
+                lineinfo.column = lineinfo.default().column
+                lineinfo.line++
+            }
+            else lineinfo.column++
+            if (d.contains(s)) break
+        }
+        return b.toString()
+    }
+}
+
+fun parserPrep(line: String) : ArrayDeque<String> {
+    val st = StringTokenizer(line, tokens, true)
+    var dq = ArrayDeque<String>()
+    while (st.hasMoreTokens()) {
+        dq.addLast(st.nextToken())
+    }
+    return dq
+}
+
+class parser(tokens : ArrayDeque<String>) {
+    var tokenList = tokens
+
+    inner class internallineinfo {
+        inner class default {
+            var column = 1
+            var line = 1
+        }
+        var column = default().column
+        var line = default().line
+    }
+
+    var lineinfo = internallineinfo()
+
+    fun clone() : parser {
+        val result = StringBuffer()
+        tokenList.forEach {
+            result.append(it!!)
+        }
+        return parser(parserPrep(result.toString()))
+    }
+
+    fun peek() : String? {
+        return tokenList.peek()
+    }
+
+    fun pop() : String? {
+        val peekValue = tokenList.peek()
+        if (peekValue == null) {
+            if (tokenList.pop() != null) abort("token list is corrupted")
+            return null
+        }
+        val returnValue = tokenList.pop()
+        if (returnValue == null) abort("token list is corrupted")
+        var i = 0
+        while (i < returnValue.length) {
+            if (returnValue[i] == '\n') {
+                lineinfo.column = lineinfo.default().column
+                lineinfo.line++
+            }
+            else lineinfo.column++
+            i++
+        }
+        return returnValue
+    }
+
+    fun clear() {
+        tokenList.clear()
+    }
+
+    override fun toString() : String {
+        return dequeToString(tokenList)
+    }
+
+    fun toStringAsArray() : String {
+        return tokenList.toString()
+    }
+
+    inner class isSequenceZeroOrMany(str : String) {
+        val sg = str
+        val seq = isSequenceOneOrMany(sg)
+
+        override fun toString() : String {
+            return this@parser.isSequenceOneOrMany(sg).toString()
+        }
+
+        fun peek() : Boolean {
+            return true
+        }
+
+        fun pop() : Boolean {
+            while(seq.peek()) seq.pop()
+            return true
+        }
+    }
+
+    inner class isSequenceOneOrMany(str : String) {
+        val sg = str
+
+        override fun toString() : String {
+            val o = clone().isSequenceOnce(sg)
+            val result = StringBuffer()
+            while(o.peek()) {
+                result.append(o.toString())
+                o.pop()
+            }
+            return result.toString()
+        }
+
+        fun peek() : Boolean {
+            val o = clone().isSequenceOnce(sg)
+            var matches = 0
+            while(o.peek()) {
+                matches++
+                o.pop()
+            }
+            if (matches != 0) return true
+            return false
+        }
+
+        fun pop() : Boolean {
+            val o = isSequenceOnce(sg)
+            var matches = 0
+            while(o.peek()) {
+                matches++
+                o.pop()
+            }
+            if (matches != 0) return true
+            return false
+        }
+    }
+
+    inner class isSequenceOnce(str : String) {
+        val sg = str
+
+        override fun toString() : String {
+            var tmp = tokenList.clone()
+            var s = parserPrep(sg)
+            if (s.peek() == null || tmp.peek() == null) return ""
+            val result = StringBuffer()
+            while(tmp.peek() != null && s.peek() != null) {
+                val x = tmp.peek()
+                if (tmp.pop().equals(s.pop())) result.append(x)
+            }
+            return result.toString()
+        }
+
+        fun peek() : Boolean {
+            var tmp = tokenList.clone()
+            var s = parserPrep(sg)
+            if (s.peek() == null || tmp.peek() == null) return false
+            val expected = s.size
+            var matches = 0
+            while(tmp.peek() != null && s.peek() != null) if (tmp.pop().equals(s.pop())) matches++
+            if (matches == expected) return true
+            return false
+        }
+
+        fun pop() : Boolean {
+            var s = parserPrep(sg)
+            if (s.peek() == null) return false
+            val expected = s.size
+            var matches = 0
+            while (peek()) {
+                this@parser.pop()
+                matches++
+            }
+            if (matches == expected) return true
+            return false
+        }
+    }
+}
+
+fun process(orig : File, src : String, MACROM : ArrayList<Macro>) {
+    val DESTPRE: File = file(src + ".preprocessed.kt")
+    var MACRO = MACROM
+    if (MACRO[0].FileName != null) {
+        MACRO = MACRO[0].realloc(MACRO, MACRO[0].size+1)
+    }
+    MACRO[0].FileName = orig.name
+    println("registered macro definition for ${MACRO[0].FileName} at index ${MACRO[0].size}")
+    println("processing ${MACRO[0].FileName} -> ${DESTPRE.name}")
+    DESTPRE.createNewFile()
+//    println("cloning")
+//    val la = lexer(lex.f.duplicate(), lex.delimiters)
+//    println("clone made")
+    val lex = lexer(fileToByteBuffer(File(src)), tokensNewLine)
+    var line = lex.lex()
+    while (line != null) {
+        parse(lex, line, MACRO)
+        line = lex.lex()
+    }
+}
+
+/*
+fun containsDirectives(line : String) : Boolean {
+    if (line.trimStart().startsWith('#')) return true
+    return false
+}
+
+fun processDirectives(line : String, MACRO : ArrayList<Macro>) {
+    if (line.trimStart().startsWith('#')) {
+        val directive = line.trimStart().drop(1).trimStart().substringBefore(' ')
+        if (directive.equals(Macro().Directives().Definition().value)) processDefine(line, MACRO)
+    }
+}
+*/
+
+fun parse(lex : lexer, line: String, MACRO : ArrayList<Macro>) {
+    var dq = parser(parserPrep(line))
+    expand(lex, dq, MACRO)
+}
+
+fun expand(lex : lexer, TS : parser, MACRO : ArrayList<Macro>) {
+    var itterations = 0
+    var maxItterations = 100
+    while (itterations <= maxItterations && TS.peek() != null) {
+        val space = TS.isSequenceOneOrMany(" ")
+        val newline = TS.isSequenceOnce("\n")
+        val directive = TS.isSequenceOnce("#")
+        val define = TS.isSequenceOnce("define")
+        val comment = TS.isSequenceOnce("//")
+        val comma = TS.isSequenceOnce(",")
+        val emptyparens = TS.isSequenceOnce("()")
+        val leftparenthesis = TS.isSequenceOnce("(")
+        val rightparenthesis = TS.isSequenceOnce(")")
+        val leftbrace = TS.isSequenceOnce("[")
+        val rightbrace = TS.isSequenceOnce("]")
+        val leftbracket = TS.isSequenceOnce("{")
+        val rightbracket = TS.isSequenceOnce("}")
+        if (comment.peek()) {
+            println("clearing comment token '${TS.toString()}'")
+            TS.clear()
+        }
+        else if (emptyparens.peek()) {
+            println("popping empty parenthesis token '${emptyparens.toString()}'")
+            emptyparens.pop()
+        }
+        else if (newline.peek()) {
+            println("popping newline token '${newline.toString()}'")
+            newline.pop()
+        }
+        else if ((space.peek() && TS.lineinfo.column == 1) || (TS.lineinfo.column == 1 && directive.peek())) {
+            /*
+            5
+Constraints
+The only white-space characters that shall appear between preprocessing tokens within a prepro-
+cessing directive (from just after the introducing # preprocessing token through just before the
+terminating new-line character) are space and horizontal-tab (including spaces that have replaced
+comments or possibly other white-space characters in translation phase 3).
+
+             */
+            if (space.peek()) {
+                // case 1, space at start of file followed by define
+                println("popping space token '${space.toString()}'")
+                space.pop()
+            }
+            if (directive.peek()) {
+                println("popping directive token '${directive.toString()}'")
+                directive.pop()
+                if (space.peek()) {
+                    // case 1, space at start of file followed by define
+                    println("popping space token '${space.toString()}'")
+                    space.pop()
+                }
+                if (define.peek()) {
+                    // case 2, define at start of line
+                    println("popping define statement '${TS.toString()}'")
+                    processDefine("#" + TS.toString(), MACRO)
+                    TS.clear()
+                }
+            }
+        }
+        else {
+            val index = MACRO[0].size - 1
+            val ss = TS.peek()
+            val name : String
+            if (ss == null) abort("somthing is wrong")
+            name = ss as String
+            println("popping normal token '${name}'")
+            /*
+            kotlin supports new line statements but functions MUST not contain
+            a new line between the identifier and the left parenthesis
+             */
+            var isalnum : Boolean = name.matches("[A-Za-z0-9]*".toRegex())
+            var macrofunctionexists : Boolean = false
+            var macrofunctionindex = 0
+            var macroobjectexists : Boolean = false
+            var macroobjectindex = 0
+            if (isalnum) {
+                macrofunctionindex = macro_exists(name, Macro().Directives().Definition().Types().FUNCTION, index, MACRO)
+                if (currentmacroexists) {
+                    macrofunctionexists = true
+                }
+                else {
+                    macroobjectindex = macro_exists(name, Macro().Directives().Definition().Types().OBJECT, index, MACRO)
+                    if (currentmacroexists) {
+                        macroobjectexists = true
+                    }
+                }
+            }
+            if (macroobjectexists || macrofunctionexists) {
+                var isfunction: Boolean = false
+
+                println("looking ahead")
+                val TSA = TS.clone()
+                val TSAspace = TSA.isSequenceOneOrMany(" ")
+                val TSAleftparen = TSA.isSequenceOnce("(")
+                TSA.pop() // pop the function name
+                if (TSAspace.peek()) TSAspace.pop() // pop any spaces in between
+                if (TSAleftparen.peek()) isfunction = true
+
+                if (isfunction) {
+                    if (macrofunctionexists) {
+                        println("'${TS.peek()}' is a function")
+                        // we know that this is a function, proceed to attempt to extract all arguments
+                        var depthparenthesis = 0
+                        var depthbrace = 0
+                        var depthbracket = 0
+                        TS.pop() // pop the function name
+                        if (space.peek()) space.pop() // pop any spaces in between
+                        TS.pop() // pop the first (
+                        depthparenthesis++
+                        var itterations = 0
+                        var maxItterations = 100
+                        var argc = 0
+                        var argv: MutableList<String> = mutableListOf()
+                        argv.add("")
+                        while (itterations <= maxItterations) {
+                            if (newline.peek()) {
+                                TS.pop()
+                                val l = TS.peek()
+                                if (l == null) {
+                                    println("ran out of tokens, grabbing more tokens from the next line")
+                                    val line = lex.lex()
+                                    if (line == null) abort("no more lines when expecting more lines")
+                                    TS.tokenList = parserPrep(line as String)
+                                }
+                            }
+                            println("popping '${TS.peek()}'")
+                            if (leftparenthesis.peek()) {
+                                depthparenthesis++
+                                argv[argc] = argv[argc].plus(TS.pop())
+                            } else if (leftbrace.peek()) {
+                                depthbrace++
+                                argv[argc] = argv[argc].plus(TS.pop())
+                            } else if (leftbracket.peek()) {
+                                depthbracket++
+                                argv[argc] = argv[argc].plus(TS.pop())
+                            } else if (rightparenthesis.peek()) {
+                                depthparenthesis--
+                                if (depthparenthesis == 0) {
+                                    TS.pop()
+                                    break
+                                }
+                                argv[argc] = argv[argc].plus(TS.pop())
+                            } else if (rightbrace.peek()) {
+                                depthbrace--
+                                argv[argc] = argv[argc].plus(TS.pop())
+                            } else if (rightbracket.peek()) {
+                                depthbracket--
+                                argv[argc] = argv[argc].plus(TS.pop())
+                            } else if (comma.peek()) {
+                                if (depthparenthesis == 1) {
+                                    argc++
+                                    argv.add("")
+                                    TS.pop()
+                                } else argv[argc] = argv[argc].plus(TS.pop())
+                            } else argv[argc] = argv[argc].plus(TS.pop())
+                            itterations++
+                        }
+                        if (itterations > maxItterations) println("itterations expired")
+                        argc++
+                        println("argc = $argc")
+                        println("argv = $argv")
+                        val macroTypeDependantIndex = macrofunctionindex
+                        println("${MACRO[index].Macros[macroTypeDependantIndex].Token} of type ${MACRO[index].Macros[macroTypeDependantIndex].Type} has value ${MACRO[index].Macros[macroTypeDependantIndex].Value}")
+                        println("macro  args = ${MACRO[index].Macros[macroTypeDependantIndex].Arguments}")
+                        println("target args = $argv")
+                    } else {
+                        println("'${TS.peek()}' is a function but no associated macro exists")
+                        TS.pop() // pop the macro name
+                    }
+                }
+                else {
+                    println("'${TS.peek()}' is an object")
+                    TS.pop() // pop the macro name
+                    if (macroobjectexists) {
+                        val macroTypeDependantIndex = macroobjectindex
+                        println("${MACRO[index].Macros[macroTypeDependantIndex].Token} of type ${MACRO[index].Macros[macroTypeDependantIndex].Type} has value ${MACRO[index].Macros[macroTypeDependantIndex].Value}")
+                    }
+                }
+            } else TS.pop()
+        }
+        itterations++
+    }
+    if (itterations > maxItterations) println("itterations expired")
+}
+
 fun extract_arguments(arg : String, MACRO : ArrayList<Macro>, expand_arguments : Boolean = false)  : ArrayList<String>? {
     fun filterSplit(arg : String, ex : balanced, b : balanced.balanceList) : ArrayList<String> {
         var Arguments : ArrayList<String> = arrayListOf()
@@ -497,12 +1078,12 @@ fun extract_arguments(arg : String, MACRO : ArrayList<Macro>, expand_arguments :
             }
             else {
                 ex.info()
-                abortk("unbalanced code")
+                abort("unbalanced code")
             }
         }
         else if (ex.containsR(arg, b)) {
             // unbalanced
-            abortk("unbalanced code")
+            abort("unbalanced code")
         }
         else {
             var a : MutableList<String> = arg.split(',').toMutableList()
@@ -532,7 +1113,7 @@ fun MacroExpansionEngine(str : String, index : Int, MACRO : ArrayList<Macro>) : 
     if (MACRO[index].Macros[0].FullMacro == null) return str
     println("expanding line '$str'")
     var newstr = ""
-    val tokens = " ().,->{}[]"
+    val tokens = mtokens
     val token_list = tokens.toList()
     println("tokens to ignore : $token_list")
     val st = StringTokenizer(str, tokens, true)
@@ -707,7 +1288,7 @@ fun macro_substitution(str : String, macro_arguments : ArrayList<String>?, actua
     println("substituting $str")
     println("${macro_arguments!!.size} == ${actual_arguments!!.size} is ${macro_arguments!!.size == actual_arguments!!.size}")
     if ((macro_arguments!!.size == actual_arguments!!.size) == false) {
-        abortk("size mismatch: expected ${macro_arguments!!.size}, got ${actual_arguments
+        abort("size mismatch: expected ${macro_arguments!!.size}, got ${actual_arguments
             !!.size}")
     }
     var associated_arguments = arrayListOf(Macro())
