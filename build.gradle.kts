@@ -524,9 +524,14 @@ fun processDefine(line: String, MACRO : ArrayList<Macro>) {
         type = Macro().Directives().Definition().Types().FUNCTION
     var token : String = ""
     if (type.equals(Macro().Directives().Definition().Types().OBJECT)) {
+        var empty = false
         // object
         token =
             full_macro.substringAfter(' ').trimStart().substringBefore(' ').trimStart()
+        if (token[token.length-1] == '\n') {
+            token = token.dropLast(1)
+            empty = true
+        }
         val i = macro_exists(token, type, index, MACRO)
         if (currentmacroexists) {
             macro_index = i
@@ -543,8 +548,11 @@ fun processDefine(line: String, MACRO : ArrayList<Macro>) {
         MACRO[index].Macros[macro_index].FullMacro = line.trimStart().trimEnd()
         MACRO[index].Macros[macro_index].Token = token
         MACRO[index].Macros[macro_index].Type = type
-        MACRO[index].Macros[macro_index].Value =
-            full_macro.substringAfter(' ').trimStart().substringAfter(' ').trimStart().trimStart()
+        if (!empty) {
+            MACRO[index].Macros[macro_index].Value =
+                full_macro.substringAfter(' ').trimStart().substringAfter(' ').trimStart().trimStart()
+        }
+        else MACRO[index].Macros[macro_index].Value = ""
     } else {
         // function
         token =
@@ -608,10 +616,15 @@ fun fileToByteBuffer(f : File) : ByteBuffer {
     return buffer
 }
 
+fun stringToByteBuffer(f : String) : ByteBuffer {
+    return ByteBuffer.wrap(f.toByteArray())
+}
+
 class lexer(stm : ByteBuffer, delimiter : String) {
     val f = stm
     val delimiters = delimiter
     val d = stringToDeque(delimiters)
+    var current_line = ""
 
     inner class internallineinfo {
         inner class default {
@@ -656,7 +669,8 @@ class lexer(stm : ByteBuffer, delimiter : String) {
             else lineinfo.column++
             if (d.contains(s)) break
         }
-        return b.toString()
+        current_line = b.toString()
+        return current_line
     }
 }
 
@@ -812,10 +826,7 @@ class parser(tokens : ArrayDeque<String>) {
             if (s.peek() == null) return false
             val expected = s.size
             var matches = 0
-            while (peek()) {
-                this@parser.pop()
-                matches++
-            }
+            while(this@parser.peek() != null && s.peek() != null) if (this@parser.pop().equals(s.pop())) matches++
             if (matches == expected) return true
             return false
         }
@@ -838,7 +849,18 @@ fun process(orig : File, src : String, MACROM : ArrayList<Macro>) {
     val lex = lexer(fileToByteBuffer(File(src)), tokensNewLine)
     var line = lex.lex()
     while (line != null) {
-        parse(lex, line, MACRO)
+        val out = parse(lex, line, MACRO)
+        var input = line
+        if (input[input.length-1] == '\n') {
+            input = input.dropLast(1)
+        }
+        println("\ninput = $input")
+        println("output = $out\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+        if (first_line) {
+            DESTPRE.writeText(out + "\n")
+            first_line = false
+        }
+        else DESTPRE.appendText(out + "\n")
         line = lex.lex()
     }
 }
@@ -857,12 +879,14 @@ fun processDirectives(line : String, MACRO : ArrayList<Macro>) {
 }
 */
 
-fun parse(lex : lexer, line: String, MACRO : ArrayList<Macro>) {
-    var dq = parser(parserPrep(line))
-    expand(lex, dq, MACRO)
+fun parse(lex : lexer, line: String, MACRO : ArrayList<Macro>) : String {
+    return expand(lex, parser(parserPrep(line)), MACRO)
 }
 
-fun expand(lex : lexer, TS : parser, MACRO : ArrayList<Macro>) {
+fun expand(lex : lexer, TS : parser, MACRO : ArrayList<Macro>, blacklist : MutableList<String> = mutableListOf()) : String {
+    println("expanding '${lex.current_line}'")
+    println("blacklist = $blacklist")
+    val expansion = StringBuffer()
     var itterations = 0
     var maxItterations = 100
     while (itterations <= maxItterations && TS.peek() != null) {
@@ -871,6 +895,8 @@ fun expand(lex : lexer, TS : parser, MACRO : ArrayList<Macro>) {
         val directive = TS.isSequenceOnce("#")
         val define = TS.isSequenceOnce("define")
         val comment = TS.isSequenceOnce("//")
+        val blockcommentstart = TS.isSequenceOnce("/*")
+        val blockcommentend = TS.isSequenceOnce("*/")
         val comma = TS.isSequenceOnce(",")
         val emptyparens = TS.isSequenceOnce("()")
         val leftparenthesis = TS.isSequenceOnce("(")
@@ -883,8 +909,41 @@ fun expand(lex : lexer, TS : parser, MACRO : ArrayList<Macro>) {
             println("clearing comment token '${TS.toString()}'")
             TS.clear()
         }
+        else if(blockcommentstart.peek()) {
+            var depthblockcomment = 0
+            blockcommentstart.pop() // pop the first /*
+            depthblockcomment++
+            var itterations = 0
+            var maxItterations = 100
+            while (itterations <= maxItterations) {
+                while (newline.peek()) {
+                    // if next line grabbed happens to be a new line, pop it, and grab the next line
+                    newline.pop()
+                    val l = TS.peek()
+                    if (l == null) {
+                        println("ran out of tokens, grabbing more tokens from the next line")
+                        val line = lex.lex()
+                        if (line == null) abort("no more lines when expecting more lines")
+                        TS.tokenList = parserPrep(line as String)
+                    }
+                }
+                if (blockcommentstart.peek()) {
+                    depthblockcomment++
+                    blockcommentstart.pop()
+                } else if (blockcommentend.peek()) {
+                    depthblockcomment--
+                    blockcommentend.pop()
+                    if (depthblockcomment == 0) {
+                        break
+                    }
+                } else TS.pop()
+                itterations++
+            }
+            if (itterations > maxItterations) println("itterations expired")
+        }
         else if (emptyparens.peek()) {
             println("popping empty parenthesis token '${emptyparens.toString()}'")
+            expansion.append(emptyparens.toString())
             emptyparens.pop()
         }
         else if (newline.peek()) {
@@ -905,6 +964,7 @@ comments or possibly other white-space characters in translation phase 3).
                 // case 1, space at start of file followed by define
                 println("popping space token '${space.toString()}'")
                 space.pop()
+                expansion.append(" ")
             }
             if (directive.peek()) {
                 println("popping directive token '${directive.toString()}'")
@@ -928,7 +988,7 @@ comments or possibly other white-space characters in translation phase 3).
             val name : String
             if (ss == null) abort("somthing is wrong")
             name = ss as String
-            println("popping normal token '${name}'")
+            println("popping normal token '$name'")
             /*
             kotlin supports new line statements but functions MUST not contain
             a new line between the identifier and the left parenthesis
@@ -961,8 +1021,10 @@ comments or possibly other white-space characters in translation phase 3).
                 if (TSAspace.peek()) TSAspace.pop() // pop any spaces in between
                 if (TSAleftparen.peek()) isfunction = true
 
+                var skip : Boolean = false
+                if (blacklist.contains(name)) skip = true
                 if (isfunction) {
-                    if (macrofunctionexists) {
+                    if (macrofunctionexists && skip == false) {
                         println("'${TS.peek()}' is a function")
                         // we know that this is a function, proceed to attempt to extract all arguments
                         var depthparenthesis = 0
@@ -979,7 +1041,7 @@ comments or possibly other white-space characters in translation phase 3).
                         argv.add("")
                         while (itterations <= maxItterations) {
                             if (newline.peek()) {
-                                TS.pop()
+                                newline.pop()
                                 val l = TS.peek()
                                 if (l == null) {
                                     println("ran out of tokens, grabbing more tokens from the next line")
@@ -1015,7 +1077,7 @@ comments or possibly other white-space characters in translation phase 3).
                                 if (depthparenthesis == 1) {
                                     argc++
                                     argv.add("")
-                                    TS.pop()
+                                    comma.pop()
                                 } else argv[argc] = argv[argc].plus(TS.pop())
                             } else argv[argc] = argv[argc].plus(TS.pop())
                             itterations++
@@ -1028,24 +1090,114 @@ comments or possibly other white-space characters in translation phase 3).
                         println("${MACRO[index].Macros[macroTypeDependantIndex].Token} of type ${MACRO[index].Macros[macroTypeDependantIndex].Type} has value ${MACRO[index].Macros[macroTypeDependantIndex].Value}")
                         println("macro  args = ${MACRO[index].Macros[macroTypeDependantIndex].Arguments}")
                         println("target args = $argv")
-                    } else {
-                        println("'${TS.peek()}' is a function but no associated macro exists")
+                        if (MACRO[index].Macros[macroTypeDependantIndex].Value != null) {
+                            val lex = lexer(
+                                stringToByteBuffer(MACRO[index].Macros[macroTypeDependantIndex].Value as String),
+                                tokensNewLine
+                            )
+                            val line = lex.lex()
+                            if (line != null) {
+                                val parser = parser(parserPrep(line as String))
+                                /*
+                                1
+After the arguments for the invocation of a function-like macro have been identified, argument
+substitution takes place. A parameter in the replacement list, unless preceded by a # or ## prepro-
+cessing token or followed by a ## preprocessing token (see below), is replaced by the corresponding
+argument after all macros contained therein have been expanded. Before being substituted, each
+argument’s preprocessing tokens are completely macro replaced as if they formed the rest of the
+preprocessing file; no other preprocessing tokens are available.
+*/
+                                var i = 0
+//                                println("expanding arguments: $argc arguments to expand")
+//                                while (i < argc) {
+//                                    // expand each argument
+//                                    val lex = lexer(stringToByteBuffer(argv[i]), tokensNewLine)
+//                                    val line = lex.lex()
+//                                    if (line != null) {
+//                                        val parser = parser(parserPrep(line as String))
+//                                        val e = expand(lex, parser, MACRO)
+//                                        println("macro expansion '${argv[i]}' returned $e")
+//                                        argv[i] = e
+//                                    }
+//                                    i++
+//                                }
+//                                println("expanded arguments: $argc arguments expanded")
+                                val associated_arguments = toMacro(
+                                    MACRO[index].Macros[macroTypeDependantIndex].Arguments,
+                                    argv as List<String>
+                                )
+                                println("blacklisting $name")
+                                blacklist.add(name)
+                                val e = expand(lex, parser, associated_arguments, blacklist)
+                                println("current expansion is $expansion")
+                                println("macro FUNCTION expansion $name returned $e")
+                                val lex2 = lexer(stringToByteBuffer(e), tokensNewLine)
+                                val line2 = lex2.lex()
+                                if (line2 != null) {
+                                    val parser = parser(parserPrep(line2 as String))
+                                    val e2 = expand(lex2, parser, MACRO, blacklist)
+                                    println("current expansion is $expansion")
+                                    println("macro FUNCTION expansion '$e' returned $e2")
+                                    expansion.append(e2)
+                                    println("current expansion is $expansion")
+                                }
+//                                expansion.append(e)
+//                                val e = expand(lex, parser, associated_arguments, blacklist)
+//                                println("macro expansion $name returned $e")
+//                                expand(lex, parser, associated_arguments)
+                            }
+                        }
+                    }
+                    else if (macrofunctionexists && skip == true) {
+                        println("'$name' is a function but it is currently being expanded")
+                        expansion.append(name)
+                        TS.pop() // pop the macro name
+                    }
+                    else {
+                        println("'$name' is a function but no associated macro exists")
+                        expansion.append(name)
                         TS.pop() // pop the macro name
                     }
                 }
                 else {
-                    println("'${TS.peek()}' is an object")
+                    println("'$name' is an object")
                     TS.pop() // pop the macro name
                     if (macroobjectexists) {
-                        val macroTypeDependantIndex = macroobjectindex
-                        println("${MACRO[index].Macros[macroTypeDependantIndex].Token} of type ${MACRO[index].Macros[macroTypeDependantIndex].Type} has value ${MACRO[index].Macros[macroTypeDependantIndex].Value}")
+                        if (skip == true) {
+                            println("but it is currently being expanded")
+                            expansion.append(name)
+                        }
+                        else {
+                            val macroTypeDependantIndex = macroobjectindex
+                            println("${MACRO[index].Macros[macroTypeDependantIndex].Token} of type ${MACRO[index].Macros[macroTypeDependantIndex].Type} has value ${MACRO[index].Macros[macroTypeDependantIndex].Value}")
+                            val lex = lexer(
+                                stringToByteBuffer(MACRO[index].Macros[macroTypeDependantIndex].Value as String),
+                                tokensNewLine
+                            )
+                            val line = lex.lex()
+                            if (line != null) {
+                                println("blacklisting $name")
+                                blacklist.add(name)
+                                val parser = parser(parserPrep(line as String))
+                                val e = expand(lex, parser, MACRO, blacklist)
+                                println("macro OBJECT expansion $name returned $e")
+                                expansion.append(e)
+                            }
+                        }
+                    }
+                    else {
+                        println("but does not exist as a macro")
+                        expansion.append(name)
                     }
                 }
-            } else TS.pop()
+            }
+            else expansion.append(TS.pop())
         }
         itterations++
     }
     if (itterations > maxItterations) println("itterations expired")
+    println("expansion = $expansion")
+    return expansion.toString()
 }
 
 fun extract_arguments(arg : String, MACRO : ArrayList<Macro>, expand_arguments : Boolean = false)  : ArrayList<String>? {
@@ -1284,12 +1436,11 @@ fun macro_list(index : Int = 0, MACRO : ArrayList<Macro>) {
     println("LISTED MACROS")
 }
 
-fun macro_substitution(str : String, macro_arguments : ArrayList<String>?, actual_arguments : ArrayList<String>?, MACRO : ArrayList<Macro>) : String {
-    println("substituting $str")
+fun toMacro(macro_arguments : ArrayList<String>?, actual_arguments : ArrayList<String>?) : ArrayList<Macro> {
     println("${macro_arguments!!.size} == ${actual_arguments!!.size} is ${macro_arguments!!.size == actual_arguments!!.size}")
     if ((macro_arguments!!.size == actual_arguments!!.size) == false) {
         abort("size mismatch: expected ${macro_arguments!!.size}, got ${actual_arguments
-            !!.size}")
+        !!.size}")
     }
     var associated_arguments = arrayListOf(Macro())
     var i = 0
@@ -1307,6 +1458,37 @@ fun macro_substitution(str : String, macro_arguments : ArrayList<String>?, actua
         i++
     }
     macro_list(MACRO = associated_arguments)
+    return associated_arguments
+}
+
+fun toMacro(macro_arguments : ArrayList<String>?, actual_arguments : List<String>?) : ArrayList<Macro> {
+    println("${macro_arguments!!.size} == ${actual_arguments!!.size} is ${macro_arguments!!.size == actual_arguments!!.size}")
+    if ((macro_arguments!!.size == actual_arguments!!.size) == false) {
+        abort("size mismatch: expected ${macro_arguments!!.size}, got ${actual_arguments
+        !!.size}")
+    }
+    var associated_arguments = arrayListOf(Macro())
+    var i = 0
+    associated_arguments[0].Macros[i].FullMacro = "define ${macro_arguments[i]} ${actual_arguments[i]}"
+    associated_arguments[0].Macros[i].Type = Macro().Directives().Definition().Types().OBJECT
+    associated_arguments[0].Macros[i].Token = macro_arguments[i]
+    associated_arguments[0].Macros[i].Value = actual_arguments[i]
+    i++
+    while (i <= macro_arguments.lastIndex) {
+        associated_arguments[0].Macros = associated_arguments[0].Macros[0].realloc(associated_arguments[0].Macros, associated_arguments[0].Macros[0].size+1)
+        associated_arguments[0].Macros[i].FullMacro = "define ${macro_arguments[i]} ${actual_arguments[i]}"
+        associated_arguments[0].Macros[i].Type = Macro().Directives().Definition().Types().OBJECT
+        associated_arguments[0].Macros[i].Token = macro_arguments[i]
+        associated_arguments[0].Macros[i].Value = actual_arguments[i]
+        i++
+    }
+    macro_list(MACRO = associated_arguments)
+    return associated_arguments
+}
+
+fun macro_substitution(str : String, macro_arguments : ArrayList<String>?, actual_arguments : ArrayList<String>?, MACRO : ArrayList<Macro>) : String {
+    println("substituting $str")
+    val associated_arguments = toMacro(macro_arguments, actual_arguments)
     var E = MacroExpansionEngine(str, 0, associated_arguments)
     println("E = $E")
     E = MacroExpansionEngine(E, 0, MACRO)

@@ -151,9 +151,9 @@ foob(1, foob(a,b,c), 3) // function
 #define b(x) c() x
 #define c(x) d a() x
 
-//a(a())
-//b(b())
-//c(c())
+a(a())
+b(b())
+c(c())
 
 
 #define a(x) x
@@ -162,4 +162,3 @@ foob(1, foob(a,b,c), 3) // function
 #define UIK UIK2
 a(z(UIK))
 a(z)
-
