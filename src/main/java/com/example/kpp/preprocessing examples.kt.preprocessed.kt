@@ -21,9 +21,9 @@ l d k
 
 
 
-a("3" x)
-b("1" x)
-c("2" x)
+a("3" "2" "1" "x")
+b("1" "3" "2" "y")
+c("2" "1" "3" "z")
 
 
 
@@ -31,7 +31,7 @@ c("2" x)
 
 
 
-l d k a() x x a(A)
-l d k b() x x b(B)
-l d k c() x x c(C)
+l d k a()   l d k a()   A
+l d k b()   l d k b()   B
+l d k c()   l d k c()   C
 

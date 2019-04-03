@@ -19,13 +19,10 @@ k k x(o)
 */
 
 // self referencing macro
-//#define d l d k
-//d
-/* preprocessor output (self reference protection on)
+#define d l d k
+d
+/* preprocessor output
 l d k
-*/
-/* preprocessor output (self reference protection off)
-... expansion loop
 */
 // macro expansion loop
 #define a(x) b("1" x)
@@ -35,17 +32,11 @@ l d k
 a("x")
 b("y")
 c("z")
-/* preprocessor out (self reference protection off)
+/* preprocessor out
 a("3" "2" "1" "x")
 b("1" "3" "2" "y")
 c("2" "1" "3" "z")
 */
-/* preprocessor out (self reference protection on)
-a("3" x)
-b("1" x)
-c("2" x)
-*/
-
 
 // another macro expansion loop
 #define a(x) b() x
@@ -55,13 +46,8 @@ c("2" x)
 a(a(A))
 b(b(B))
 c(c(C))
-/* preprocessor out (self reference protection off, 'd' undefined)
-d a()   a(A)
-d b()   b(B)
-d c()   c(C)
-*/
-/* preprocessor out (self reference protection on)
-l d k a() x x a(A)
-l d k b() x x b(B)
-l d k c() x x c(C)
+/* preprocessor output
+l d k a()   l d k a()   A
+l d k b()   l d k b()   B
+l d k c()   l d k c()   C
 */
