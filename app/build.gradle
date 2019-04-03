@@ -1,5 +1,4 @@
 plugins {
-    id("greet")
     id("KOTLIN_PRE_PROCESSOR")
 }
 
@@ -44,10 +43,4 @@ dependencies {
 //    implementation 'com.github.h0tk3y.betterParse:better-parse-jvm:0.4.0-alpha-3'
 //}
 
-
-//apply from: '../kpp/build.gradle.kts'
-
-//preBuild.dependsOn KOTLIN_PRE_PROCESSOR
-
-preBuild.dependsOn greet
 preBuild.dependsOn KOTLIN_PRE_PROCESSOR
