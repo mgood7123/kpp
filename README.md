@@ -5,6 +5,30 @@ it is currently in beta as it is not fully functional yet
 
 # UNDER CONSTRUCTION
 
+## what works?
+* #define is fully functional
+
+## what does not work?
+`#undef`
+
+stringilization :  `#define tostring(x) #x`
+
+token concation :  `#define cat(a,b) a##b`
+
+predefined macros : `__FILE__, __LINE__, and others`
+
+`#ifdef`
+
+`#endif`
+
+`#if`
+
+`#else`
+
+`#fi`
+
+any other directives i may have missed
+
 
 
 
@@ -23,7 +47,7 @@ in project root
 git clone https://github.com/mgood7123/kpp
 ```
 
-by defailt, kpp's install directory is hardcoded to ProjectRoot/kpp, eg `/home/superlock/AndroidStudioProjects/AudioEvolved/kpp` where `AudioEvolved` is the ProjectRoot
+by default, kpp's install directory is hardcoded to ProjectRoot/kpp, eg `/home/superlock/AndroidStudioProjects/AudioEvolved/kpp` where `AudioEvolved` is the ProjectRoot
 
 in module you wish kpp to operate on
 
@@ -230,4 +254,4 @@ any other directives i may have missed
 
 # why not just use cpp
 
-cpp is intended for `C`, `C#`, and `C++` and as such produces unwanted text in its output, aswell as not properly supporting the kotlin language (using cpp on anything other than the C language set is considered abuse of the preprocessor, and may result in unintended side effects
+cpp is intended for `C`, `C#`, and `C++` and as such produces unwanted text in its output, such as `#line` directives, aswell as not properly supporting the kotlin language (using cpp on anything other than the C language set is considered abuse of the preprocessor, and may result in unintended side effects
