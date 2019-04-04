@@ -35,12 +35,4 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 }
 
-//repositories {
-//    maven { setUrl("https://dl.bintray.com/hotkeytlt/maven") }
-//}
-
-//dependencies {
-//    implementation 'com.github.h0tk3y.betterParse:better-parse-jvm:0.4.0-alpha-3'
-//}
-
 preBuild.dependsOn KOTLIN_PRE_PROCESSOR
