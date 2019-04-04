@@ -5,29 +5,26 @@ it is currently in beta as it is not fully functional yet
 
 # UNDER CONSTRUCTION
 
+## TODO
+* improve documentation
+* publish plugin
+* figure out how to include this in other projects
+* improve installation and usage information
+
 ## what works?
 * #define is fully functional
 
 ## what does not work?
-`#undef`
-
-stringilization :  `#define tostring(x) #x`
-
-token concation :  `#define cat(a,b) a##b`
-
-predefined macros : `__FILE__, __LINE__, and others`
-
-`#ifdef`
-
-`#endif`
-
-`#if`
-
-`#else`
-
-`#fi`
-
-any other directives i may have missed
+* `#undef`
+* stringilization :  `#define tostring(x) #x`
+* token concation :  `#define cat(a,b) a##b`
+* predefined macros : `__FILE__, __LINE__, and others`
+* `#ifdef`
+* `#endif`
+* `#if`
+* `#else`
+* `#fi`
+* any other directives i may have missed
 
 
 
