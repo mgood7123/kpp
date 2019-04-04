@@ -18,7 +18,7 @@ class kpp : Plugin<Project> {
                     globalVariables.INITPROJECTDIR = projectDir
                     globalVariables.INITROOTDIR = rootDir
                     println("starting KOTLIN_PRE_PROCESSOR")
-                    find_source_files(globalVariables.INITPROJECTDIR.toString(), "kt")
+                    find_source_files(globalVariables.INITPROJECTDIR.toString(), "kpp")
                     println("KOTLIN_PRE_PROCESSOR finished")
                 }
             }

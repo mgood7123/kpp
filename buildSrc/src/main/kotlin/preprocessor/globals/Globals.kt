@@ -87,5 +87,5 @@ class Globals {
     var cachedFileContainsPreprocesser = false
     var firstLine = true
     var currentMacroExists = false
-
+    var preprocessedExtension = ".preprocessed"
 }

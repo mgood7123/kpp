@@ -8,14 +8,14 @@ import java.util.ArrayList
 /**
  * pre-processes a file **src**
  *
- * the result is saved in "$src.preprocessed.$ext"
+ * the result is saved in "$src${globalVariables.preprocessedExtension}$extension$extension"
  *
  * @param src the file to be modified
- * @param ext the extention of file specified in **src**
+ * @param extension the extention of file specified in **src**
  * @param MACROM a [Macro] array
  */
-fun process(src : String, ext : String, MACROM : ArrayList<Macro>) {
-    val DESTPRE: File = File("$src.preprocessed.$ext")
+fun process(src : String, extension : String, MACROM : ArrayList<Macro>) {
+    val DESTPRE: File = File("$src${globalVariables.preprocessedExtension}.$extension")
     var MACRO = MACROM
     if (MACRO[0].FileName != null) {
         MACRO = MACRO[0].realloc(MACRO, MACRO[0].size+1)

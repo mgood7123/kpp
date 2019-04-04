@@ -1,8 +1,8 @@
 package preprocessor.base
 
-import java.io.File
 import preprocessor.extra.globalVariables
 import preprocessor.extra.process
+import java.io.File
 import preprocessor.utils.abort
 import java.io.IOException
 import java.nio.file.Files
@@ -11,18 +11,18 @@ import java.nio.file.Files
 /**
  * self exlanatory
  *
- * this function finds and processes all source files in the directory **Dir** with the extention **ext**
+ * this function finds and processes all source files in the directory **Dir** with the extension **extension**
  * @param Dir the directory to search in
- * @param ext the extention that each file must end
+ * @param extension the extension that each file must end
  * @sample find_source_files_sample
  */
-fun find_source_files(Dir : String, ext : String) {
+fun find_source_files(Dir : String, extension : String) {
     var srcDir = File(Dir)
     srcDir?.listFiles().forEach {
-        if (it.isDirectory) find_source_files(it.toString(), ext)
+        if (it.isDirectory) find_source_files(it.toString(), extension)
         if (it.isFile) {
-            if (it.extension.equals(ext)) {
-                initiate(it, ext)
+            if (it.extension.equals(extension)) {
+                initiate(it, extension)
             }
         }
     }
@@ -30,7 +30,7 @@ fun find_source_files(Dir : String, ext : String) {
 
 
 fun find_source_files_sample() {
-    // find all source files with kotlin extention
+    // find all source files with kotlin extension
     find_source_files(globalVariables.INITPROJECTDIR.toString(), "kt")
 }
 
@@ -53,7 +53,7 @@ fun cp(src : String, dest : String, verbose : Boolean = false, overwrite : Boole
 /**
  * initializes the file **src** to be pre-processed
  */
-fun initiate(src : File, ext : String) {
+fun initiate(src : File, extension : String) {
     globalVariables.initKppDir()
     val source = src.toString()
     val dest = globalVariables.kppDir + src.toString().removePrefix(globalVariables.INITPROJECTDIR.toString())
@@ -67,20 +67,20 @@ fun initiate(src : File, ext : String) {
         if (!globalVariables.cachedFileContainsPreprocesser) {
             // if dest no longer contains preprocessing info, copy it back to src, overwriting the current src, and use src
             if (cp(dest, source, globalVariables.globalCpVerbose, true)) { // copy dest to source
-                println("${dest.substringAfterLast('/')} (in kpp/src) moved back to original source")
+                println("${dest.substringAfterLast('/')} moved back to original source")
                 File(dest).delete()
-                if (File(dest + ".preprocessed.kt").exists()) File(dest + ".preprocessed.kt").delete()
+                if (File(dest + globalVariables.preprocessedExtension + "." + extension).exists()) File(dest + globalVariables.preprocessedExtension + "." + extension).delete()
             }
-            else abort("failed to move ${dest} (in kpp/src) to $source")
+            else abort("failed to move ${dest} to $source")
         }
         else {
             // if dest already exist use dest
-            println("using ${dest.substringAfterLast('/')} in kpp/src")
-            process(dest, ext, globalVariables.kppMacroList)
-            if (cp(dest + ".preprocessed.kt", source, globalVariables.globalCpVerbose, true)) {
-                println("${dest.substringAfterLast('/')}.preprocessed.kt (in kpp/src) copied back to original source")
+            println("using ${dest.substringAfterLast('/')} in kpp")
+            process(dest, extension, globalVariables.kppMacroList)
+            if (cp(dest + globalVariables.preprocessedExtension + "." + extension, source, globalVariables.globalCpVerbose, true)) {
+                println("${dest.substringAfterLast('/')}${globalVariables.preprocessedExtension}.$extension (in kpp) copied back to original source")
             }
-            else abort("failed to copy ${dest}.preprocessed.kt (in kpp/src) to $source")
+            else abort("failed to copy $dest${globalVariables.preprocessedExtension}.$extension (in kpp) to $source")
         }
     }
     else {
@@ -90,15 +90,15 @@ fun initiate(src : File, ext : String) {
         } else {
             // if src contains preprocessing info, copy it to dest and use dest
             if (cp(source, dest, globalVariables.globalCpVerbose, true)) { // copy if dest does not exist
-                println("original ${dest.substringAfterLast('/')} added to kpp/src")
+                println("original ${dest.substringAfterLast('/')} added to kpp")
             }
             else abort("failed to copy $source to $dest")
-            println("using ${dest.substringAfterLast('/')} in kpp/src")
-            process(dest, ext, globalVariables.kppMacroList)
-            if (cp(dest + ".preprocessed.kt", source, globalVariables.globalCpVerbose, true)) { // copy back to source
-                println("${dest.substringAfterLast('/')}.preprocessed.kt (in kpp/src) copied back to original source")
+            println("using ${dest.substringAfterLast('/')} in kpp")
+            process(dest, extension, globalVariables.kppMacroList)
+            if (cp(dest + globalVariables.preprocessedExtension + "." + extension, source, globalVariables.globalCpVerbose, true)) { // copy back to source
+                println("${dest.substringAfterLast('/')}${globalVariables.preprocessedExtension}.$extension (in kpp) copied back to original source")
             }
-            else abort("failed to copy ${dest}.preprocessed.kt (in kpp/src) to $source")
+            else abort("failed to copy $dest${globalVariables.preprocessedExtension}.$extension (in kpp) to $source")
         }
     }
 }
