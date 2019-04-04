@@ -1,6 +1,4 @@
-plugins {
-    id("KOTLIN_PRE_PROCESSOR")
-}
+apply plugin: 'KOTLIN_PRE_PROCESSOR'
 
 apply plugin: 'com.android.application'
 
