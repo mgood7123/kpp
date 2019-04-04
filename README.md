@@ -10,6 +10,7 @@ it is currently in beta as it is not fully functional yet
 * publish plugin
 * figure out how to include this in other projects
 * improve installation and usage information
+* figure out how to hook gradle syntax analysis to provide autocompletion for directives and macros
 
 ## what works?
 * #define is fully functional
