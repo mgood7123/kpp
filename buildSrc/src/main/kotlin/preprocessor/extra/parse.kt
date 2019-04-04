@@ -1,6 +1,9 @@
-package preprocessor.core
+package preprocessor.extra
 
-import preprocessor.extra.expand
+import preprocessor.core.Macro
+import preprocessor.core.lexer
+import preprocessor.core.parser
+import preprocessor.core.parserPrep
 import java.util.ArrayList
 
 /**
