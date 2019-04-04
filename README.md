@@ -3,7 +3,7 @@ KPP is a kotlin pre-processor developed in Kotlin DSL (kotlin build script) for 
 
 it is currently in beta as it is not fully functional yet
 
-#UNDER CONSTRUCTION
+# UNDER CONSTRUCTION
 
 
 
@@ -15,7 +15,7 @@ it is currently in beta as it is not fully functional yet
 
 
 
-#old README.md
+# old README.md
 
 # how do i use kpp?
 in project root
