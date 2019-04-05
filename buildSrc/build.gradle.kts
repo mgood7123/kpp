@@ -5,6 +5,13 @@ plugins {
     signing
 }
 
+tasks.create<Delete>("clean2") {
+    group = "clean"
+    delete = setOf (
+        "build"
+    )
+}
+
 group = "com.example"
 version = "1.0"
 
