@@ -1,7 +1,7 @@
 package preprocessor.core
 
 import java.nio.ByteBuffer
-import preprocessor.utils.stringToDeque
+import preprocessor.utils.conversion.stringToDeque
 
 /**
  * a minimal lexer implementation

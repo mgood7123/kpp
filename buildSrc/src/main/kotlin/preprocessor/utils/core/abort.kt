@@ -1,4 +1,4 @@
-package preprocessor.utils
+package preprocessor.utils.core
 
 import org.gradle.api.GradleException
 

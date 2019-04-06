@@ -1,7 +1,7 @@
-package preprocessor.extra
+package preprocessor.utils.extra
 
 import preprocessor.core.Macro
-import preprocessor.utils.abort
+import preprocessor.utils.core.abort
 import java.util.ArrayList
 
 /**

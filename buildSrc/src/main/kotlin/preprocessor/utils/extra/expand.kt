@@ -1,8 +1,9 @@
-package preprocessor.extra
+package preprocessor.utils.extra
 
+import preprocessor.base.globalVariables
 import preprocessor.core.*
-import preprocessor.utils.abort
-import preprocessor.utils.stringToByteBuffer
+import preprocessor.utils.core.abort
+import preprocessor.utils.conversion.stringToByteBuffer
 import java.util.ArrayList
 
 /**
@@ -104,7 +105,7 @@ comments or possibly other white-space characters in translation phase 3).
                 if (define.peek()) {
                     // case 2, define at start of line
                     println("popping define statement '${TS.toString()}'")
-                    processDefine("#" + TS.toString(), MACRO)
+                    preprocessor.core.processDefine("#" + TS.toString(), MACRO)
                     TS.clear()
                 }
             }

@@ -1,15 +1,14 @@
-import preprocessor.base.*
-import preprocessor.extra.globalVariables
+import preprocessor.base.globalVariables
+import preprocessor.utils.Sync
 
 tasks {
     register("KOTLIN_PRE_PROCESSOR") {
         group = "kotlin pre processor"
         description = "kotlin pre processor"
         doLast {
-            globalVariables.INITPROJECTDIR = projectDir
-            globalVariables.INITROOTDIR = rootDir
             println("starting KOTLIN_PRE_PROCESSOR")
-            find_source_files(globalVariables.INITPROJECTDIR.toString(), "kpp")
+            globalVariables.initGlobals(rootDir, projectDir)
+            Sync().findSourceFilesOrNull(globalVariables.projectDirectory)
             println("KOTLIN_PRE_PROCESSOR finished")
         }
     }

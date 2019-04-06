@@ -1,7 +1,7 @@
 package preprocessor.core
 
-import preprocessor.extra.globalVariables
-import preprocessor.utils.abort
+import preprocessor.base.globalVariables
+import preprocessor.utils.core.abort
 import java.util.ArrayList
 
 /**
