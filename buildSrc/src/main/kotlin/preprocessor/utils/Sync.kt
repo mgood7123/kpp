@@ -1,12 +1,15 @@
 package preprocessor.utils
 
 import preprocessor.base.globalVariables
+import preprocessor.core.macroList
 import preprocessor.core.process
 import java.io.File
 import preprocessor.utils.core.*
 import java.nio.file.Files
 
-/*
+/**
+ *
+ *//*
 if A/FILE exists
     if B/FILE does not exist
         delete A/FILE
@@ -27,7 +30,7 @@ else if B/FILE exists
  */
 class Sync {
 
-    val ignore = arrayListOf<String>(
+    private val ignore: ArrayList<String> = arrayListOf(
         // ignore png files
         "png",
         // ignore proguard files
@@ -49,85 +52,85 @@ class Sync {
      */
     private fun syncB(dir: File, src: File, extension: String? = null) {
         dir.listFiles().forEach {
-            val A = it
-            val B = File(
-                globalVariables.rootDirectory.toString() + '/' + basename(globalVariables.kppDir) + A.toString().removePrefix(
-                    globalVariables.rootDirectory!!.path
-                )
+            val a = it
+            val b = File(
+                // Line is longer than allowed by code style (> 120 columns)
+                globalVariables.rootDirectory.toString() + '/' + basename(globalVariables.kppDir) +
+                        a.toString().removePrefix(globalVariables.rootDirectory!!.path)
             )
-            println("A :     " + A)
-            println("B : " + B)
-            if (A.exists()) {
-                if (A.isDirectory) {
+            println("A :     $a")
+            println("B : $b")
+            if (a.exists()) {
+                if (a.isDirectory) {
                     // ignore build dir in A
                     // if build dir exists in B, delete it
-                    val blocked = A.toString().equals(globalVariables.projectDirectory?.path + "/build")
+                    val blocked = a.toString() == globalVariables.projectDirectory?.path + "/build"
                     if (!blocked) {
-                        println("entering $A")
-                        syncB(A, src, extension)
-                        println("leaving $A")
+                        println("entering $a")
+                        syncB(a, src, extension)
+                        println("leaving $a")
                     } else println("A is blocked")
-                    if (B.exists()) {
+                    if (b.exists()) {
                         if (blocked) {
                             println("deleting B")
-                            deleteRecursive(B)
-                        } else if (empty(B)) {
+                            deleteRecursive(b)
+                        } else if (empty(b)) {
                             println("deleting B")
-                            delete(B)
+                            delete(b)
                         }
                     }
-                    val AP = File(A.path + globalVariables.preprocessedExtension + "." + A.extension)
-                    val BP = File(B.path + globalVariables.preprocessedExtension + "." + B.extension)
-                    if (AP.exists()) {
+                    val aPreProcessed = File(a.path + globalVariables.preprocessedExtension + "." + a.extension)
+                    val bPreProcessed = File(b.path + globalVariables.preprocessedExtension + "." + b.extension)
+                    if (aPreProcessed.exists()) {
                         println("deleting preprocessing file associated with A")
-                        delete(AP)
+                        delete(aPreProcessed)
                     }
-                    if (BP.exists()) {
+                    if (bPreProcessed.exists()) {
                         println("deleting preprocessing file associated with B")
-                        delete(BP)
+                        delete(bPreProcessed)
                     }
-                } else if (A.isFile) {
-                    if (A.path.endsWith(globalVariables.preprocessedExtension + "." + A.extension)) {
+                } else if (a.isFile) {
+                    if (a.path.endsWith(globalVariables.preprocessedExtension + "." + a.extension)) {
                         println("A is preprocessor file")
                         println("deleting A")
-                        delete(A)
-                    } else if (!ignore.contains(A.extension)) {
+                        delete(a)
+                    } else if (!ignore.contains(a.extension)) {
                         // if extension is null, test every file
                         // ignore these extensions
-                        if (it.extension.equals(extension) || extension == null) {
-                            if (!B.exists()) {
-                                if (test_File(A!!)) {
+                        if (it.extension == extension || extension == null) {
+                            if (!b.exists()) {
+                                if (testFile(a!!)) {
                                     println("copying A to B")
-                                    if (!cp(A.path, B.path, true))
-                                        abort("failed to copy $A to $B")
+                                    if (!cp(a.path, b.path, true))
+                                        abort("failed to copy $a to $b")
                                 } else {
                                     println("B does not exist however A does not contain DATA")
                                     println("B cannot be deleted as it does not exist")
                                     println("A will not be copied to B")
                                 }
                             } else {
-                                if (!test_File(B!!)) {
+                                if (!testFile(b)) {
                                     println("B exists however does not contains DATA")
                                     println("deleting B")
-                                    delete(B)
+                                    delete(b)
                                 } else println("B contains DATA")
                             }
                         }
                     } else {
-                        println("ignoring extension: ${A.extension}")
-                        if (B.exists()) {
+                        println("ignoring extension: ${a.extension}")
+                        if (b.exists()) {
                             println("A is ignoring but B exists, deleting B")
-                            delete(B)
+                            delete(b)
                         }
-                        val AP = File(A.path + globalVariables.preprocessedExtension + "." + A.extension)
-                        val BP = File(B.path + globalVariables.preprocessedExtension + "." + B.extension)
-                        if (AP.exists()) {
+                        val aPreProcessed = File(a.path + globalVariables.preprocessedExtension + "." + a.extension)
+                        val bPreProcessed = File(b.path + globalVariables.preprocessedExtension + "." + b.extension)
+                        if (aPreProcessed.exists()) {
                             println("deleting preprocessing file associated with A")
-                            delete(AP)
+                            delete(aPreProcessed)
                         }
-                        if (BP.exists()) {
+                        if (bPreProcessed.exists()) {
                             println("deleting preprocessing file associated with B")
-                            delete(BP)
+                            delete(bPreProcessed)
                         }
                     }
                 }
@@ -146,78 +149,92 @@ class Sync {
      */
     private fun syncA(dir: File, src: File, extension: String? = null) {
         dir.listFiles().forEach {
-            val A = it
-            val B = File(
-                globalVariables.rootDirectory.toString() + '/' + A.toString().removePrefix(globalVariables.kppDir!!)
+            val a = it
+            val b = File(
+                globalVariables.rootDirectory.toString() + '/' + a.toString().removePrefix(globalVariables.kppDir!!)
             )
-            println("A : " + A)
-            println("B :     " + B)
+            println("A : $a")
+            println("B :     $b")
             run returnpoint@{
-                if (A.exists()) {
-                    if (A.isDirectory) {
+                if (a.exists()) {
+                    if (a.isDirectory) {
                         // ignore build dir in A
                         // if build dir exists in B, delete it
-                        val blocked = A.toString().equals(globalVariables.projectDirectory?.path + "/build")
+                        val blocked = a.toString() == globalVariables.projectDirectory?.path + "/build"
                         if (!blocked) {
-                            if (B.path.equals(globalVariables.kppDir)) {
+                            if (b.path == globalVariables.kppDir) {
                                 println("error: B is kpp dir")
                                 println("kpp should not contain its own directory")
                                 println("deleting A")
-                                deleteRecursive(A)
+                                deleteRecursive(a)
                                 println("returning to @returnpoint")
                                 return@returnpoint
                             } else {
-                                if (B.exists()) {
-                                    println("entering $A")
-                                    syncA(A, src, extension)
-                                    println("leaving $A")
-                                    if (empty(A)) {
+                                if (b.exists()) {
+                                    println("entering $a")
+                                    syncA(a, src, extension)
+                                    println("leaving $a")
+                                    if (empty(a)) {
                                         println("deleting A")
-                                        delete(A)
+                                        delete(a)
                                         println("returning to @returnpoint")
                                         return@returnpoint
                                     }
                                 } else {
                                     println("B does not exist")
                                     println("deleting A")
-                                    deleteRecursive(A)
+                                    deleteRecursive(a)
                                     println("returning to @returnpoint")
                                     return@returnpoint
                                 }
                             }
                         } else println("A is blocked")
-                        if (B.exists()) {
+                        if (b.exists()) {
                             if (blocked) {
                                 println("deleting A")
-                                deleteRecursive(A)
+                                deleteRecursive(a)
                                 println("returning to @returnpoint")
                                 return@returnpoint
-                            } else if (empty(A)) {
+                            } else if (empty(a)) {
                                 println("deleting A")
-                                delete(A)
+                                delete(a)
                                 println("returning to @returnpoint")
                                 return@returnpoint
                             }
                         }
-                    } else if (A.isFile) {
+                    } else if (a.isFile) {
+                        // if B does not exist, delete A
+                        if (!b.exists()) {
+                            println("B does not exist")
+                            println("deleting A")
+                            delete(a)
+                            println("returning to @returnpoint")
+                            return@returnpoint
+                        }
                         // if extension is null, test every file
                         // ignore these extensions
-                        if (!ignore.contains(A.extension)) {
-                            if (it.extension.equals(extension) || extension == null) {
-                                if (!test_File(A!!)) {
+                        if (!ignore.contains(a.extension)) {
+                            if (it.extension == extension || extension == null) {
+                                if (!testFile(a!!)) {
                                     println("A exists however does not contains DATA")
-                                    if (!A.path.endsWith(globalVariables.preprocessedExtension + "." + extension)) {
+                                    if (!a.path.endsWith(globalVariables.preprocessedExtension + "." + extension)) {
                                         println("moving A to B")
-                                        if (!mv(A.path, B.path, true, true))
+                                        if (!mv(a.path, b.path, verbose = true, overwrite = true))
                                             abort()
                                     } else {
                                         println("A is preprocessor file")
                                         println("moving A to B (renamed)")
                                         if (!mv(
-                                                A.path,
-                                                B.path.removeSuffix("." + globalVariables.preprocessedExtension + "." + extension),
-                                                true,
-                                                true
+                                                a.path,
+                                                // Line is longer than allowed by code style (> 120 columns)
+                                                b.path.removeSuffix(
+                                                    "." +
+                                                            globalVariables.preprocessedExtension +
+                                                            "." +
+                                                            extension
+                                                ),
+                                                verbose = true,
+                                                overwrite = true
                                             )
                                         )
                                             abort()
@@ -227,17 +244,19 @@ class Sync {
                                 } else {
                                     println("A contains DATA")
                                     println("processing A")
-                                    if (A.extension.equals("")) {
+                                    if (a.extension == "") {
                                         println("error: cannot process a file with no extension")
                                         return@returnpoint
                                     }
-                                    process(A.path, A.extension, globalVariables.kppMacroList)
+                                    macroList(globalVariables.kppMacroList)
+                                    process(a.path, a.extension, globalVariables.kppMacroList)
+                                    macroList(globalVariables.kppMacroList)
                                     println("moving resulting preprocessing file A to B (renamed)")
                                     if (!mv(
-                                            A.path + globalVariables.preprocessedExtension + "." + A.extension,
-                                            B.path,
-                                            true,
-                                            true
+                                            a.path + globalVariables.preprocessedExtension + "." + a.extension,
+                                            b.path,
+                                            verbose = true,
+                                            overwrite = true
                                         )
                                     )
                                         println("returning to @returnpoint")
@@ -245,7 +264,7 @@ class Sync {
                                 }
                             }
                         } else {
-                            println("ignoring extension: ${A.extension}")
+                            println("ignoring extension: ${a.extension}")
                             println("returning to @returnpoint")
                             return@returnpoint
                         }
@@ -264,8 +283,9 @@ class Sync {
      * @param dir the directory to search in
      * @param extension the extension that each file must end
      * @param extension if **null** then any file is accepted
-     * @sample find_source_files_sample
+     * @sample findSourceFilesSample
      */
+    @Suppress("MemberVisibilityCanBePrivate")
     fun findSourceFiles(dir: File, extension: String? = null) {
         // sync dir with kppDir
         syncB(dir, globalVariables.kppDirAsFile as File, extension)
@@ -281,12 +301,13 @@ class Sync {
      * @param dir the directory to search in
      * @param extension the extension that each file must end
      * @param extension if **null** then any file is accepted
-     * @sample find_source_files_sample
+     * @sample findSourceFilesSample
      */
 
+    @Suppress("MemberVisibilityCanBePrivate")
     fun findSourceFilesOrNull(dir: File?, extension: String? = null) {
         if (dir == null) abort("dir cannot be null")
-        findSourceFiles(dir as File, extension)
+        findSourceFiles(dir, extension)
     }
 
     /**
@@ -296,13 +317,14 @@ class Sync {
      * @param dir the directory to search in
      * @param extension the extension that each file must end
      * @param extension if **null** then any file is accepted
-     * @sample find_source_files_sample
+     * @sample findSourceFilesSample
      */
+    @Suppress("MemberVisibilityCanBePrivate")
     fun findSourceFiles(dir: String, extension: String? = null) {
         findSourceFiles(File(dir), extension)
     }
 
-    private fun find_source_files_sample() {
+    private fun findSourceFilesSample() {
         val path =
             globalVariables.projectDirectory.toString()
         // find all source files with kotlin extension
@@ -314,17 +336,17 @@ class Sync {
     /**
      * test if file **src** contains any preprocessor directives
      */
-    fun test_File(src: File): Boolean {
+    private fun testFile(src: File): Boolean {
         globalVariables.currentFileContainsPreprocesser = false
         println("testing file: ${src.path}")
         val lines: List<String> = Files.readAllLines(src.toPath())
         lines.forEach { line ->
-            check_if_preprocessor_is_needed(line)
+            checkIfPreprocessorIsNeeded(line)
         }
         return globalVariables.currentFileContainsPreprocesser
     }
 
-    private fun check_if_preprocessor_is_needed(line: String) {
+    private fun checkIfPreprocessorIsNeeded(line: String) {
         if (line.trimStart().startsWith('#')) globalVariables.currentFileContainsPreprocesser = true
     }
 }

@@ -2,4 +2,7 @@ package preprocessor.base
 
 import preprocessor.globals.Globals
 
-val globalVariables = Globals()
+/**
+ * @see Globals
+ */
+val globalVariables: Globals = Globals()

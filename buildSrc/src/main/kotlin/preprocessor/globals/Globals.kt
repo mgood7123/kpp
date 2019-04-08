@@ -4,6 +4,10 @@ import preprocessor.core.Macro
 import preprocessor.utils.core.basename
 import java.io.File
 
+/**
+ * the globals class contains all global variables used by this library
+ */
+@Suppress("MemberVisibilityCanBePrivate")
 class Globals {
     /**
      * the current project directory that this task has been called from
@@ -29,22 +33,22 @@ class Globals {
     var rootDirectoryBaseName: String? = null
 
     /**
-     * the default [macro][Macro] list
+     * the Default [macro][Macro] list
      */
-    var kppMacroList = arrayListOf(Macro())
+    var kppMacroList: ArrayList<Macro> = arrayListOf(Macro())
 
     /**
      * the directory that **kpp** is contained in
      */
-    var kppDir : String? = null
+    var kppDir: String? = null
     /**
      * the directory that **kpp** is contained in
      */
-    var kppDirAsFile : File? = null
+    var kppDirAsFile: File? = null
     /**
      * the suffix to give files that have been processed by kpp
      */
-    var preprocessedExtension = ".preprocessed"
+    var preprocessedExtension: String = ".preprocessed"
 
     /**
      * inits the global variables
@@ -54,7 +58,7 @@ class Globals {
      * replace `Globals()` with your instance of the `Globals` class
      * @sample globalsSample
      */
-    fun initGlobals(rootDir : File, projectDir : File) {
+    fun initGlobals(rootDir: File, projectDir: File) {
         projectDirectory = projectDir
         projectDirectoryBaseName = basename(projectDirectory)
         rootDirectory = rootDir
@@ -64,22 +68,31 @@ class Globals {
     }
 
     /**
-     * specifies if the function [cp] should produce verbose output or not
+     * this is used by [testFile][preprocessor.utils.Sync.testFile]
      */
-    val globalCpVerbose = false
-
-    var currentFileContainsPreprocesser = false
-    var currentFileIsCashed = false
-    var cachedFileContainsPreprocesser = false
-    var firstLine = true
-    var currentMacroExists = false
-    val abortOnComplete = true
+    var currentFileContainsPreprocesser: Boolean = false
+    /**
+     *
+     *//*
+    TODO: implement file cache
+    var currentFileIsCashed: Boolean = false
+    var cachedFileContainsPreprocesser: Boolean = false
+     */
+    var firstLine: Boolean = true
+    /**
+     *
+     */
+    var currentMacroExists: Boolean = false
+    /**
+     *
+     */
+    var abortOnComplete: Boolean = true
 
     /**
      * `<space> or <tab>`
      * @see tokens
      */
-    val tokensSpace = " \t"
+    val tokensSpace: String = " \t"
 
     /**
      * `<newline>`
@@ -95,7 +108,7 @@ class Globals {
      * )
      * @see tokens
      */
-    val tokensNewLine = "\n"
+    val tokensNewLine: String = "\n"
 
     /**
      * ```
@@ -115,22 +128,29 @@ class Globals {
      * ```
      * @see tokens
      */
-    val tokensExtra = "/*#().,->{}[]"
+    val tokensExtra: String = "/*#().,->{}[]"
+    /**
+     * ```
+     * +
+     * -
+     * *
+     * /
+     * ```
+     * @see tokens
+     */
+    val tokensMath: String = "+-*/"
 
     /**
-     * the default list of tokens
+     * the Default list of tokens
      *
-     * **tokens = [tokensSpace] + [tokensNewLine] + [tokensExtra]**
+     * this is used in general tokenization and [Macro] expansion
+     *
+     * **tokens = [tokensSpace] + [tokensNewLine] + [tokensExtra] + [tokensMath]**
      */
-    val tokens = tokensSpace + tokensNewLine + tokensExtra
-
-    /**
-     * tokens used in macro expansion
-     */
-    val mTokens = " ().,->{}[]"
+    val tokens: String = tokensSpace + tokensNewLine + tokensExtra + tokensMath
 }
 
-private fun globalsSample(rootDir : File, projectDir : File) {
+private fun globalsSample(rootDir: File, projectDir: File) {
     val globals = Globals()
     globals.initGlobals(rootDir, projectDir)
     //rootDir is usually provided within the task itself

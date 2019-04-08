@@ -12,6 +12,5 @@ fun t() {
     println(functions)
     functions["first"]?.invoke("a")
     val chars: List<Char> = listOf('a', '+', '1')
-
-
+    println("$chars")
 }

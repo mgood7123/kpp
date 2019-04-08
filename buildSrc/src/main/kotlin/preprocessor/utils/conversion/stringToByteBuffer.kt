@@ -7,6 +7,6 @@ import java.nio.ByteBuffer
  * @return the resulting conversion
  * @see fileToByteBuffer
  */
-fun stringToByteBuffer(f : String) : ByteBuffer {
+fun stringToByteBuffer(f: String): ByteBuffer {
     return ByteBuffer.wrap(f.toByteArray())
 }

@@ -7,7 +7,7 @@ import java.io.File
  *
  * [abort]s on failure
  */
-fun deleteRecursive(src : File) {
+fun deleteRecursive(src: File) {
     if (!src.exists()) {
         println("deletion of ${src.path} failed: file or directory does not exist")
     }

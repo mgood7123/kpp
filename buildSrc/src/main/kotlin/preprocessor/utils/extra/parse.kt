@@ -1,20 +1,20 @@
 package preprocessor.utils.extra
 
 import preprocessor.core.Macro
-import preprocessor.core.lexer
-import preprocessor.core.parser
+import preprocessor.core.Lexer
+import preprocessor.core.Parser
 import preprocessor.core.parserPrep
 import java.util.ArrayList
 
 /**
  * parses a line
- * @param lex the current [lexer]
+ * @param lex the current [Lexer]
  * @param MACRO the [Macro] list
  */
-fun parse(lex : lexer, MACRO : ArrayList<Macro>) : String {
+fun parse(lex: Lexer, MACRO: ArrayList<Macro>): String {
     return expand(
         lex,
-        parser(parserPrep(lex.current_line as String)),
+        Parser(parserPrep(lex.currentLine as String)),
         MACRO
     )
 }

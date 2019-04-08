@@ -9,12 +9,10 @@ import java.nio.ByteBuffer
  * @return the resulting conversion
  * @see stringToByteBuffer
  */
-fun fileToByteBuffer(f : File) : ByteBuffer {
+fun fileToByteBuffer(f: File): ByteBuffer {
     val file = RandomAccessFile(f, "r")
-    val fileChannel = file.getChannel()
-
-    var i = 0
-    var buffer = ByteBuffer.allocate(fileChannel.size().toInt())
+    val fileChannel = file.channel
+    val buffer = ByteBuffer.allocate(fileChannel.size().toInt())
     fileChannel.read(buffer)
     buffer.flip()
     return buffer

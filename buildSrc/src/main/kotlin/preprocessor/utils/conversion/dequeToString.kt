@@ -7,10 +7,10 @@ import java.util.*
  * @see stringToDeque
  * @return the resulting conversion
  */
-fun dequeToString(d : ArrayDeque<String>) : String {
+fun dequeToString(d: ArrayDeque<String>): String {
     val result = StringBuffer()
     val dq = d.iterator()
-    while(dq.hasNext()) {
+    while (dq.hasNext()) {
         result.append(dq.next())
     }
     return result.toString()
