@@ -5,6 +5,7 @@ import preprocessor.utils.extra.extractArguments
 import preprocessor.base.globalVariables
 import preprocessor.utils.extra.parse
 import preprocessor.utils.conversion.fileToByteBuffer
+import preprocessor.utils.core.realloc
 import java.io.File
 import java.util.ArrayList
 
@@ -27,7 +28,7 @@ fun process(
     if (macro[index].fileName != null) {
         index++
         println("reallocating to $index")
-        macro[0].realloc(macro, index + 1)
+        realloc(macro, index + 1)
     }
     macro[index].fileName = src.substringAfterLast('/')
     println("registered macro definition for ${macro[index].fileName} at index $index")
@@ -92,7 +93,7 @@ fun processDefine(line: String, macro: ArrayList<Macro>) {
             macroIndex = i
         } else {
             if (macro[index].macros[macroIndex].fullMacro != null) {
-                macro[index].macros[0].realloc(
+                realloc(
                     macro[index].macros,
                     macro[index].macros[0].size + 1
                 )
@@ -115,7 +116,7 @@ fun processDefine(line: String, macro: ArrayList<Macro>) {
             macroIndex = i
         } else {
             if (macro[index].macros[macroIndex].fullMacro != null) {
-                macro[index].macros[0].realloc(
+                realloc(
                     macro[index].macros,
                     macro[index].macros[0].size + 1
                 )

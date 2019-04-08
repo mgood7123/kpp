@@ -4,7 +4,7 @@ package preprocessor.core
 
 import preprocessor.base.globalVariables
 import preprocessor.utils.core.abort
-import java.util.ArrayList
+import preprocessor.utils.core.realloc
 
 /**
  *
@@ -164,23 +164,6 @@ class Macro {
          * this contains the definition replacement list
          */
         var replacementList: String? = null
-
-        /**
-         * this adds a new macro to the [macro][MacroInternal] list
-         *
-         * implementation of the C function **realloc**
-         *
-         * allocation is recorded in [size][Macro.MacroInternal.size] paramater
-         *
-         * @param m [internal macro list][MacroInternal]
-         * @param newSize the new [size][MacroInternal.size] to allocate the [internal macro list][MacroInternal] to
-         * @see <a href="http://man7.org/linux/man-pages/man3/realloc.3p.html">realloc (C function)</a>
-         * @sample Tests.reallocUsageInternal
-         */
-        fun realloc(m: ArrayList<MacroInternal>, newSize: Int) {
-            m.add(MacroInternal())
-            m[0].size = newSize
-        }
     }
 
     /**
@@ -205,23 +188,6 @@ class Macro {
         macros = arrayListOf(MacroInternal())
     }
 
-    /**
-     * this adds a new macro to the [macro][Macro] list
-     *
-     * implementation of the C function realloc
-     *
-     * allocation is recorded in [size][Macro.size] paramater
-     *
-     * @param m [macro list][Macro]
-     * @param NewSize the new [size][Macro.size] to allocate the [macro list][Macro] to
-     * @see <a href="http://man7.org/linux/man-pages/man3/realloc.3p.html">realloc (C function)</a>
-     * @sample Tests.reallocUsage
-     */
-    fun realloc(m: ArrayList<Macro>, NewSize: Int) {
-        m.add(Macro())
-        m[0].size = NewSize
-    }
-
     private class Tests {
         fun generalUsage() {
             val c = arrayListOf(Macro())
@@ -230,19 +196,19 @@ class Macro {
             c[0].macros[0].token = "A"
             c[0].macros[0].replacementList = "B00"
             println(c[0].macros[0].replacementList)
-            c[0].realloc(c, c[0].size + 1)
+            realloc(c, c[0].size + 1)
             c[1].fileName = "test"
             c[1].macros[0].fullMacro = "A B"
             c[1].macros[0].token = "A"
             c[1].macros[0].replacementList = "B10"
             println(c[1].macros[0].replacementList)
-            c[1].macros[0].realloc(c[1].macros, c[1].macros[0].size + 1)
+            realloc(c[1].macros, c[1].macros[0].size + 1)
             c[1].fileName = "test"
             c[1].macros[1].fullMacro = "A B"
             c[1].macros[1].token = "A"
             c[1].macros[1].replacementList = "B11"
             println(c[1].macros[1].replacementList)
-            c[1].macros[0].realloc(c[1].macros, c[1].macros[0].size + 1)
+            realloc(c[1].macros, c[1].macros[0].size + 1)
             c[1].fileName = "test"
             c[1].macros[2].fullMacro = "A B"
             c[1].macros[2].token = "A"
@@ -253,7 +219,7 @@ class Macro {
         fun reallocUsage() {
             val c = arrayListOf(Macro())
             // allocate a new index
-            c[0].realloc(c, c[0].size + 1)
+            realloc(c, c[0].size + 1)
             // assign some values
             c[0].fileName = "test"
             c[1].fileName = "test"
@@ -262,7 +228,7 @@ class Macro {
         fun reallocUsageInternal() {
             val c = arrayListOf(Macro())
             // allocate a new index
-            c[0].macros[0].realloc(c[0].macros, c[0].macros[0].size + 1)
+            realloc(c[0].macros, c[0].macros[0].size + 1)
             // assign some values
             c[0].macros[0].fullMacro = "A A"
             c[0].macros[1].fullMacro = "A B"
@@ -271,7 +237,7 @@ class Macro {
         fun size() {
             val c = arrayListOf(Macro())
             // allocate a new macro
-            c[0].macros[0].realloc(c[0].macros, c[0].macros[0].size + 1)
+            realloc(c[0].macros, c[0].macros[0].size + 1)
             c[0].macros[1].fullMacro = "A B"
             println(c[0].macros[1].replacementList)
             // obtain base index
@@ -285,7 +251,7 @@ class Macro {
         fun sizem() {
             var c = arrayListOf(Macro())
             c[0].fileName = "test1"
-            c[0].realloc(c, c[0].size + 1)
+            realloc(c, c[0].size + 1)
             c[1].fileName = "test2"
             val index = c[0].size - 1
             if (c[index].fileName.equals(c[1].fileName))
@@ -388,7 +354,7 @@ fun toMacro(macro_arguments: ArrayList<String>?, actual_arguments: ArrayList<Str
     i++
     while (i <= macro_arguments.lastIndex) {
         // Line is longer than allowed by code style (> 120 columns)
-        associatedArguments[0].macros[0].realloc(
+        realloc(
             associatedArguments[0].macros,
             associatedArguments[0].macros[0].size + 1
         )
@@ -425,7 +391,7 @@ fun toMacro(macro_arguments: ArrayList<String>?, actual_arguments: List<String>?
     i++
     while (i <= macro_arguments.lastIndex) {
         // Line is longer than allowed by code style (> 120 columns)
-        associatedArguments[0].macros[0].realloc(
+        realloc(
             associatedArguments[0].macros,
             associatedArguments[0].macros[0].size + 1
         )
