@@ -9,12 +9,12 @@ import java.util.ArrayList
 /**
  * parses a line
  * @param lex the current [Lexer]
- * @param MACRO the [Macro] list
+ * @param macro the [Macro] list
  */
-fun parse(lex: Lexer, MACRO: ArrayList<Macro>): String {
+fun parse(lex: Lexer, macro: ArrayList<Macro>): String {
     return expand(
         lex,
         Parser(parserPrep(lex.currentLine as String)),
-        MACRO
+        macro
     )
 }

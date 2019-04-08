@@ -176,12 +176,10 @@ class Macro {
          * @param newSize the new [size][MacroInternal.size] to allocate the [internal macro list][MacroInternal] to
          * @see <a href="http://man7.org/linux/man-pages/man3/realloc.3p.html">realloc (C function)</a>
          * @sample Tests.reallocUsageInternal
-         * @return the given [macro][MacroInternal] list, allocated to **newSize**
          */
-        fun realloc(m: ArrayList<MacroInternal>, newSize: Int): ArrayList<MacroInternal> {
+        fun realloc(m: ArrayList<MacroInternal>, newSize: Int) {
             m.add(MacroInternal())
             m[0].size = newSize
-            return m
         }
     }
 
@@ -218,35 +216,33 @@ class Macro {
      * @param NewSize the new [size][Macro.size] to allocate the [macro list][Macro] to
      * @see <a href="http://man7.org/linux/man-pages/man3/realloc.3p.html">realloc (C function)</a>
      * @sample Tests.reallocUsage
-     * @return the given macro list, allocated to newSize
      */
-    fun realloc(m: ArrayList<Macro>, NewSize: Int): ArrayList<Macro> {
+    fun realloc(m: ArrayList<Macro>, NewSize: Int) {
         m.add(Macro())
         m[0].size = NewSize
-        return m
     }
 
     private class Tests {
         fun generalUsage() {
-            var c = arrayListOf(Macro())
+            val c = arrayListOf(Macro())
             c[0].fileName = "test"
             c[0].macros[0].fullMacro = "A B"
             c[0].macros[0].token = "A"
             c[0].macros[0].replacementList = "B00"
             println(c[0].macros[0].replacementList)
-            c = c[0].realloc(c, c[0].size + 1)
+            c[0].realloc(c, c[0].size + 1)
             c[1].fileName = "test"
             c[1].macros[0].fullMacro = "A B"
             c[1].macros[0].token = "A"
             c[1].macros[0].replacementList = "B10"
             println(c[1].macros[0].replacementList)
-            c[1].macros = c[1].macros[0].realloc(c[1].macros, c[1].macros[0].size + 1)
+            c[1].macros[0].realloc(c[1].macros, c[1].macros[0].size + 1)
             c[1].fileName = "test"
             c[1].macros[1].fullMacro = "A B"
             c[1].macros[1].token = "A"
             c[1].macros[1].replacementList = "B11"
             println(c[1].macros[1].replacementList)
-            c[1].macros = c[1].macros[0].realloc(c[1].macros, c[1].macros[0].size + 1)
+            c[1].macros[0].realloc(c[1].macros, c[1].macros[0].size + 1)
             c[1].fileName = "test"
             c[1].macros[2].fullMacro = "A B"
             c[1].macros[2].token = "A"
@@ -255,9 +251,9 @@ class Macro {
         }
 
         fun reallocUsage() {
-            var c = arrayListOf(Macro())
+            val c = arrayListOf(Macro())
             // allocate a new index
-            c = c[0].realloc(c, c[0].size + 1)
+            c[0].realloc(c, c[0].size + 1)
             // assign some values
             c[0].fileName = "test"
             c[1].fileName = "test"
@@ -266,7 +262,7 @@ class Macro {
         fun reallocUsageInternal() {
             val c = arrayListOf(Macro())
             // allocate a new index
-            c[0].macros = c[0].macros[0].realloc(c[0].macros, c[0].macros[0].size + 1)
+            c[0].macros[0].realloc(c[0].macros, c[0].macros[0].size + 1)
             // assign some values
             c[0].macros[0].fullMacro = "A A"
             c[0].macros[1].fullMacro = "A B"
@@ -275,7 +271,7 @@ class Macro {
         fun size() {
             val c = arrayListOf(Macro())
             // allocate a new macro
-            c[0].macros = c[0].macros[0].realloc(c[0].macros, c[0].macros[0].size + 1)
+            c[0].macros[0].realloc(c[0].macros, c[0].macros[0].size + 1)
             c[0].macros[1].fullMacro = "A B"
             println(c[0].macros[1].replacementList)
             // obtain base index
@@ -289,7 +285,7 @@ class Macro {
         fun sizem() {
             var c = arrayListOf(Macro())
             c[0].fileName = "test1"
-            c = c[0].realloc(c, c[0].size + 1)
+            c[0].realloc(c, c[0].size + 1)
             c[1].fileName = "test2"
             val index = c[0].size - 1
             if (c[index].fileName.equals(c[1].fileName))
@@ -301,18 +297,18 @@ class Macro {
 /**
  * checks if the desired macro exists in the [Macro] list
  */
-fun macroExists(token: String, type: String, index: Int, MACRO: ArrayList<Macro>): Int {
+fun macroExists(token: String, type: String, index: Int, macro: ArrayList<Macro>): Int {
     // used to detect existing definitions for #define
     globalVariables.currentMacroExists = false
     // if empty return 0 and do not set globalVariables.currentMacroExists
-    if (MACRO[index].macros[0].fullMacro == null) return 0
+    if (macro[index].macros[0].fullMacro == null) return 0
     var i = 0
-    while (i <= MACRO[index].macros.lastIndex) {
-        if (MACRO[index].macros[i].token.equals(token) && MACRO[index].macros[i].type.equals(type)) {
+    while (i <= macro[index].macros.lastIndex) {
+        if (macro[index].macros[i].token.equals(token) && macro[index].macros[i].type.equals(type)) {
             // Line is longer than allowed by code style (> 120 columns)
             println(
-                "token and type matches existing definition ${MACRO[index].macros[i].token} type " +
-                        "${MACRO[index].macros[i].type}"
+                "token and type matches existing definition ${macro[index].macros[i].token} type " +
+                        "${macro[index].macros[i].type}"
             )
             globalVariables.currentMacroExists = true
             println("returning $i")
@@ -321,7 +317,7 @@ fun macroExists(token: String, type: String, index: Int, MACRO: ArrayList<Macro>
         // Line is longer than allowed by code style (> 120 columns)
         else println(
             "token $token or type $type does not match current definition token " +
-                    "${MACRO[index].macros[i].token} type ${MACRO[index].macros[i].type}"
+                    "${macro[index].macros[i].token} type ${macro[index].macros[i].type}"
         )
         i++
     }
@@ -331,20 +327,20 @@ fun macroExists(token: String, type: String, index: Int, MACRO: ArrayList<Macro>
 /**
  * lists the current macros in a [Macro] list
  */
-fun macroList(index: Int = 0, MACRO: ArrayList<Macro>) {
-    if (MACRO[index].macros[0].fullMacro == null) return
-    println("LISTING MACROS")
+fun macroList(index: Int = 0, macro: ArrayList<Macro>) {
+    if (macro[index].macros[0].fullMacro == null) return
+    println("LISTING macros")
     var i = 0
-    while (i <= MACRO[index].macros.lastIndex) {
-        println("[$i].fullMacro  = ${MACRO[index].macros[i].fullMacro}")
-        println("[$i].type       = ${MACRO[index].macros[i].type}")
-        println("[$i].token      = ${MACRO[index].macros[i].token}")
-        if (MACRO[index].macros[i].arguments != null)
-            println("[$i].arguments  = ${MACRO[index].macros[i].arguments}")
-        println("[$i].replacementList      = ${MACRO[index].macros[i].replacementList}")
+    while (i <= macro[index].macros.lastIndex) {
+        println("[$i].fullMacro  = ${macro[index].macros[i].fullMacro}")
+        println("[$i].type       = ${macro[index].macros[i].type}")
+        println("[$i].token      = ${macro[index].macros[i].token}")
+        if (macro[index].macros[i].arguments != null)
+            println("[$i].arguments  = ${macro[index].macros[i].arguments}")
+        println("[$i].replacementList      = ${macro[index].macros[i].replacementList}")
         i++
     }
-    println("LISTED MACROS")
+    println("LISTED macros")
 }
 
 /**
@@ -352,20 +348,20 @@ fun macroList(index: Int = 0, MACRO: ArrayList<Macro>) {
  *
  * this version lists ALL [Macro]s in the current [Macro] list in all available file index's
  */
-fun macroList(MACRO: ArrayList<Macro>) {
-    if (MACRO.size == 0) {
-        println("MACRO list is empty")
+fun macroList(macro: ArrayList<Macro>) {
+    if (macro.size == 0) {
+        println("macro list is empty")
         return
     }
     var i = 0
-    while (i < MACRO.size) {
-        if (MACRO[i].fileName == null) {
-            println("MACRO list for index $i is incomplete")
+    while (i < macro.size) {
+        if (macro[i].fileName == null) {
+            println("macro list for index $i is incomplete")
             break
         }
-        println("LISTING MACROS for file ${MACRO[i].fileName}")
-        macroList(i, MACRO)
-        println("LISTED MACROS for file ${MACRO[i].fileName}")
+        println("LISTING macros for file ${macro[i].fileName}")
+        macroList(i, macro)
+        println("LISTED macros for file ${macro[i].fileName}")
         i++
     }
 }
@@ -392,7 +388,7 @@ fun toMacro(macro_arguments: ArrayList<String>?, actual_arguments: ArrayList<Str
     i++
     while (i <= macro_arguments.lastIndex) {
         // Line is longer than allowed by code style (> 120 columns)
-        associatedArguments[0].macros = associatedArguments[0].macros[0].realloc(
+        associatedArguments[0].macros[0].realloc(
             associatedArguments[0].macros,
             associatedArguments[0].macros[0].size + 1
         )
@@ -403,7 +399,7 @@ fun toMacro(macro_arguments: ArrayList<String>?, actual_arguments: ArrayList<Str
         associatedArguments[0].macros[i].replacementList = actual_arguments[i]
         i++
     }
-    macroList(MACRO = associatedArguments)
+    macroList(macro = associatedArguments)
     return associatedArguments
 }
 
@@ -429,7 +425,7 @@ fun toMacro(macro_arguments: ArrayList<String>?, actual_arguments: List<String>?
     i++
     while (i <= macro_arguments.lastIndex) {
         // Line is longer than allowed by code style (> 120 columns)
-        associatedArguments[0].macros = associatedArguments[0].macros[0].realloc(
+        associatedArguments[0].macros[0].realloc(
             associatedArguments[0].macros,
             associatedArguments[0].macros[0].size + 1
         )
@@ -440,6 +436,6 @@ fun toMacro(macro_arguments: ArrayList<String>?, actual_arguments: List<String>?
         associatedArguments[0].macros[i].replacementList = actual_arguments[i]
         i++
     }
-    macroList(MACRO = associatedArguments)
+    macroList(macro = associatedArguments)
     return associatedArguments
 }

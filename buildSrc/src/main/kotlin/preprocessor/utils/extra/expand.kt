@@ -11,14 +11,14 @@ import java.util.ArrayList
  * @return the expanded line
  * @param lex this is used for multi-line processing
  * @param TS the current [Parser]
- * @param MACRO the current [Macro]
+ * @param macro the current [Macro]
  * @param ARG the current argument list in an expanding function
  * @param blacklist the current list of macro's which should not be expanded
  */
 fun expand(
     lex: Lexer,
     TS: Parser,
-    MACRO: ArrayList<Macro>,
+    macro: ArrayList<Macro>,
     ARG: ArrayList<String>? = null,
     blacklist: MutableList<String> = mutableListOf()
 ): String {
@@ -110,12 +110,12 @@ comments or possibly other white-space characters in translation phase 3).
                 if (define.peek()) {
                     // case 2, define at start of line
                     println("popping ${Macro().Directives().Define().value} statement '$TS'")
-                    processDefine("#$TS", MACRO)
+                    processDefine("#$TS", macro)
                     TS.clear()
                 }
             }
         } else {
-            val index = MACRO.size - 1
+            val index = macro.size - 1
             val ss = TS.peek()
             val name: String
             if (ss == null) abort("somthing is wrong")
@@ -135,7 +135,7 @@ comments or possibly other white-space characters in translation phase 3).
                     name,
                     Macro().Directives().Define().Types().Function,
                     index,
-                    MACRO
+                    macro
                 )
                 if (globalVariables.currentMacroExists) {
                     macrofunctionexists = true
@@ -144,7 +144,7 @@ comments or possibly other white-space characters in translation phase 3).
                         name,
                         Macro().Directives().Define().Types().Object,
                         index,
-                        MACRO
+                        macro
                     )
                     if (globalVariables.currentMacroExists) {
                         macroobjectexists = true
@@ -230,16 +230,16 @@ comments or possibly other white-space characters in translation phase 3).
                         val macroTypeDependantIndex = macrofunctionindex
                         // Line is longer than allowed by code style (> 120 columns)
                         println(
-                            "${MACRO[index].macros[macroTypeDependantIndex].token} of type " +
-                                    "${MACRO[index].macros[macroTypeDependantIndex].type} has value " +
-                                    "${MACRO[index].macros[macroTypeDependantIndex].replacementList}"
+                            "${macro[index].macros[macroTypeDependantIndex].token} of type " +
+                                    "${macro[index].macros[macroTypeDependantIndex].type} has value " +
+                                    "${macro[index].macros[macroTypeDependantIndex].replacementList}"
                         )
-                        println("macro  args = ${MACRO[index].macros[macroTypeDependantIndex].arguments}")
+                        println("macro  args = ${macro[index].macros[macroTypeDependantIndex].arguments}")
                         println("target args = $argv")
-                        if (MACRO[index].macros[macroTypeDependantIndex].replacementList != null) {
+                        if (macro[index].macros[macroTypeDependantIndex].replacementList != null) {
                             // Line is longer than allowed by code style (> 120 columns)
                             val replacementList =
-                                MACRO[index].macros[macroTypeDependantIndex].replacementList
+                                macro[index].macros[macroTypeDependantIndex].replacementList
                                         as String
                             val lex = Lexer(
                                 stringToByteBuffer(replacementList),
@@ -270,7 +270,7 @@ preprocessing file; no other preprocessing tokens are available.
                                     if (lex.currentLine != null) {
                                         val parser =
                                             Parser(parserPrep(lex.currentLine as String))
-                                        val e = expand(lex, parser, MACRO)
+                                        val e = expand(lex, parser, macro)
                                         println("macro expansion '${argv[i]}' returned $e")
                                         argv[i] = e
                                     }
@@ -278,21 +278,21 @@ preprocessing file; no other preprocessing tokens are available.
                                 }
                                 println("expanded arguments: $argc arguments expanded")
                                 val associatedArguments = toMacro(
-                                    MACRO[index].macros[macroTypeDependantIndex].arguments,
+                                    macro[index].macros[macroTypeDependantIndex].arguments,
                                     argv as List<String>
                                 )
                                 println("blacklisting $name")
                                 blacklist.add(name)
                                 // Line is longer than allowed by code style (> 120 columns)
                                 println(
-                                    "MACRO[index].macros[macroTypeDependantIndex].arguments = " +
-                                            "${MACRO[index].macros[macroTypeDependantIndex].arguments}"
+                                    "macro[index].macros[macroTypeDependantIndex].arguments = " +
+                                            "${macro[index].macros[macroTypeDependantIndex].arguments}"
                                 )
                                 val e = expand(
                                     lex,
                                     parser,
                                     associatedArguments,
-                                    MACRO[index].macros[macroTypeDependantIndex].arguments,
+                                    macro[index].macros[macroTypeDependantIndex].arguments,
                                     blacklist
                                 )
                                 println("current expansion is $expansion")
@@ -305,8 +305,8 @@ preprocessing file; no other preprocessing tokens are available.
                                     val e2 = expand(
                                         lex2,
                                         parser,
-                                        MACRO,
-                                        MACRO[index].macros[macroTypeDependantIndex].arguments,
+                                        macro,
+                                        macro[index].macros[macroTypeDependantIndex].arguments,
                                         blacklist
                                     )
                                     println("current expansion is $expansion")
@@ -336,13 +336,13 @@ preprocessing file; no other preprocessing tokens are available.
                             val macroTypeDependantIndex = macroobjectindex
                             // Line is longer than allowed by code style (> 120 columns)
                             println(
-                                "${MACRO[index].macros[macroTypeDependantIndex].token} of type " +
-                                        "${MACRO[index].macros[macroTypeDependantIndex].type} has value " +
-                                        "${MACRO[index].macros[macroTypeDependantIndex].replacementList}"
+                                "${macro[index].macros[macroTypeDependantIndex].token} of type " +
+                                        "${macro[index].macros[macroTypeDependantIndex].type} has value " +
+                                        "${macro[index].macros[macroTypeDependantIndex].replacementList}"
                             )
                             // Line is longer than allowed by code style (> 120 columns)
                             val replacementList =
-                                MACRO[index].macros[macroTypeDependantIndex].replacementList
+                                macro[index].macros[macroTypeDependantIndex].replacementList
                                         as String
                             val lex = Lexer(
                                 stringToByteBuffer(replacementList),
@@ -365,7 +365,7 @@ preprocessing file; no other preprocessing tokens are available.
                                 }
                                 val parser =
                                     Parser(parserPrep(lex.currentLine as String))
-                                val e = expand(lex, parser, MACRO, ARG, blacklist)
+                                val e = expand(lex, parser, macro, ARG, blacklist)
                                 println("macro Object expansion $name returned $e")
                                 expansion.append(e)
                             }

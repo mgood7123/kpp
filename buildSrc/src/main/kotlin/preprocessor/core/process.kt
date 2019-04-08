@@ -11,25 +11,23 @@ import java.util.ArrayList
 /**
  * pre-processes a file **src**
  *
- * the result is saved in "$src${globalVariables.preprocessedExtension}$extension$extension"
+ * the result is saved in "$src${globalVariables.preprocessedExtension}$extensions"
  *
  * @param src the file to be modified
  * @param extension the extention of file specified in **src**
- * @param macroTmp a [Macro] array
+ * @param macro a [Macro] array
  */
 fun process(
     src: String,
     extension: String,
-    macroTmp: ArrayList<Macro>
+    macro: ArrayList<Macro>
 ) {
     val destinationPreProcessed = File("$src${globalVariables.preprocessedExtension}.$extension")
-    // macro needs to be a modifiable value thus cannot be declared as a paramater directly
-    var macro = macroTmp
     var index = macro.size - 1
     if (macro[index].fileName != null) {
         index++
         println("reallocating to $index")
-        macro = macro[0].realloc(macro, index + 1)
+        macro[0].realloc(macro, index + 1)
     }
     macro[index].fileName = src.substringAfterLast('/')
     println("registered macro definition for ${macro[index].fileName} at index $index")
@@ -55,14 +53,14 @@ fun process(
 }
 
 /**
- * adds each **line** to the given [MACRO][Macro] list
+ * adds each **line** to the given [macro][Macro] list
  *
  * assumes each **line** is a valid **#define** directive
  */
-fun processDefine(line: String, MACRO: ArrayList<Macro>) {
-    val index = MACRO.size - 1
+fun processDefine(line: String, macro: ArrayList<Macro>) {
+    val index = macro.size - 1
     println("saving macro in to index $index")
-    var macroIndex = MACRO[index].macros[0].size
+    var macroIndex = macro[index].macros[0].size
     // to include the ability to redefine existing definitions, we must save to local variables first
     val fullMacro: String = line.trimStart().drop(1).trimStart()
     var type: String
@@ -89,57 +87,57 @@ fun processDefine(line: String, MACRO: ArrayList<Macro>) {
             token = token.dropLast(1)
             empty = true
         }
-        val i = macroExists(token, type, index, MACRO)
+        val i = macroExists(token, type, index, macro)
         if (globalVariables.currentMacroExists) {
             macroIndex = i
         } else {
-            if (MACRO[index].macros[macroIndex].fullMacro != null) {
-                MACRO[index].macros = MACRO[index].macros[0].realloc(
-                    MACRO[index].macros,
-                    MACRO[index].macros[0].size + 1
+            if (macro[index].macros[macroIndex].fullMacro != null) {
+                macro[index].macros[0].realloc(
+                    macro[index].macros,
+                    macro[index].macros[0].size + 1
                 )
             }
-            macroIndex = MACRO[index].macros[0].size
+            macroIndex = macro[index].macros[0].size
         }
-        MACRO[index].macros[macroIndex].fullMacro = line.trimStart().trimEnd()
-        MACRO[index].macros[macroIndex].token = token
-        MACRO[index].macros[macroIndex].type = type
+        macro[index].macros[macroIndex].fullMacro = line.trimStart().trimEnd()
+        macro[index].macros[macroIndex].token = token
+        macro[index].macros[macroIndex].type = type
         if (!empty) {
-            MACRO[index].macros[macroIndex].replacementList =
+            macro[index].macros[macroIndex].replacementList =
                 fullMacro.substringAfter(' ').trimStart().substringAfter(' ').trimStart().trimStart()
-        } else MACRO[index].macros[macroIndex].replacementList = ""
+        } else macro[index].macros[macroIndex].replacementList = ""
     } else {
         // function
         token =
             fullMacro.substringAfter(' ').substringBefore('(').trimStart()
-        val i = macroExists(token, type, index, MACRO)
+        val i = macroExists(token, type, index, macro)
         if (globalVariables.currentMacroExists) {
             macroIndex = i
         } else {
-            if (MACRO[index].macros[macroIndex].fullMacro != null) {
-                MACRO[index].macros = MACRO[index].macros[0].realloc(
-                    MACRO[index].macros,
-                    MACRO[index].macros[0].size + 1
+            if (macro[index].macros[macroIndex].fullMacro != null) {
+                macro[index].macros[0].realloc(
+                    macro[index].macros,
+                    macro[index].macros[0].size + 1
                 )
             }
-            macroIndex = MACRO[index].macros[0].size
+            macroIndex = macro[index].macros[0].size
         }
-        MACRO[index].macros[macroIndex].fullMacro = line.trimStart().trimEnd()
-        MACRO[index].macros[macroIndex].token = token
-        MACRO[index].macros[macroIndex].type = type
+        macro[index].macros[macroIndex].fullMacro = line.trimStart().trimEnd()
+        macro[index].macros[macroIndex].token = token
+        macro[index].macros[macroIndex].type = type
         // obtain the function arguments
-        val t = MACRO[index].macros[macroIndex].fullMacro?.substringAfter(' ')!!
+        val t = macro[index].macros[macroIndex].fullMacro?.substringAfter(' ')!!
         val b = Balanced()
-        MACRO[index].macros[macroIndex].arguments =
+        macro[index].macros[macroIndex].arguments =
             extractArguments(b.extractText(t).drop(1).dropLast(1))
-        MACRO[index].macros[macroIndex].replacementList = t.substring(b.end[0] + 1).trimStart()
+        macro[index].macros[macroIndex].replacementList = t.substring(b.end[0] + 1).trimStart()
     }
-    println("type       = ${MACRO[index].macros[macroIndex].type}")
-    println("token      = ${MACRO[index].macros[macroIndex].token}")
-    if (MACRO[index].macros[macroIndex].arguments != null)
-        println("arguments  = ${MACRO[index].macros[macroIndex].arguments}")
-    println("replacementList      = ${MACRO[index].macros[macroIndex].replacementList}")
-    macroList(index, MACRO)
+    println("type       = ${macro[index].macros[macroIndex].type}")
+    println("token      = ${macro[index].macros[macroIndex].token}")
+    if (macro[index].macros[macroIndex].arguments != null)
+        println("arguments  = ${macro[index].macros[macroIndex].arguments}")
+    println("replacementList      = ${macro[index].macros[macroIndex].replacementList}")
+    macroList(index, macro)
     // definition names do not expand
     // definition values do expand
 }
