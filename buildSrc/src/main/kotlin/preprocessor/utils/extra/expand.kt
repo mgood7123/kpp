@@ -10,14 +10,14 @@ import java.util.ArrayList
  * expands a line
  * @return the expanded line
  * @param lex this is used for multi-line processing
- * @param TS the current [Parser]
+ * @param tokenSequence the current [Parser]
  * @param macro the current [Macro]
  * @param ARG the current argument list in an expanding function
  * @param blacklist the current list of macro's which should not be expanded
  */
 fun expand(
     lex: Lexer,
-    TS: Parser,
+    tokenSequence: Parser,
     macro: ArrayList<Macro>,
     ARG: ArrayList<String>? = null,
     blacklist: MutableList<String> = mutableListOf()
@@ -26,64 +26,68 @@ fun expand(
     println("blacklist = $blacklist")
     println("ARG = $ARG")
     val expansion = StringBuffer()
-    var itterations = 0
-    val maxItterations = 100
-    while (itterations <= maxItterations && TS.peek() != null) {
-        val space = TS.IsSequenceOneOrMany(" ")
-        val newline = TS.IsSequenceOnce("\n")
-        val directive = TS.IsSequenceOnce("#")
-        val define = TS.IsSequenceOnce(Macro().Directives().Define().value)
-        val comment = TS.IsSequenceOnce("//")
-        val blockcommentstart = TS.IsSequenceOnce("/*")
-        val blockcommentend = TS.IsSequenceOnce("*/")
-        val comma = TS.IsSequenceOnce(",")
-        val emptyparens = TS.IsSequenceOnce("()")
-        val leftparenthesis = TS.IsSequenceOnce("(")
-        val rightparenthesis = TS.IsSequenceOnce(")")
-        val leftbrace = TS.IsSequenceOnce("[")
-        val rightbrace = TS.IsSequenceOnce("]")
-        val leftbracket = TS.IsSequenceOnce("{")
-        val rightbracket = TS.IsSequenceOnce("}")
+    var iterations = 0
+    val maxiterations = 100
+    while (iterations <= maxiterations && tokenSequence.peek() != null) {
+        val space = tokenSequence.IsSequenceOneOrMany(" ")
+        val newline = tokenSequence.IsSequenceOnce("\n")
+        val directive = tokenSequence.IsSequenceOnce("#")
+        val define = tokenSequence.IsSequenceOnce(Macro().Directives().Define().value)
+        val comment = tokenSequence.IsSequenceOnce("//")
+        val blockCommentStart = tokenSequence.IsSequenceOnce("/*")
+        val blockCommentEnd = tokenSequence.IsSequenceOnce("*/")
+        val comma = tokenSequence.IsSequenceOnce(",")
+        val emptyParenthesis = tokenSequence.IsSequenceOnce("()")
+        val leftParenthesis = tokenSequence.IsSequenceOnce("(")
+        val rightParenthesis = tokenSequence.IsSequenceOnce(")")
+        val leftBrace = tokenSequence.IsSequenceOnce("[")
+        val rightBrace = tokenSequence.IsSequenceOnce("]")
+        val leftBracket = tokenSequence.IsSequenceOnce("{")
+        val rightBracket = tokenSequence.IsSequenceOnce("}")
         if (comment.peek()) {
-            println("clearing comment token '$TS'")
-            TS.clear()
-        } else if (blockcommentstart.peek()) {
-            var depthblockcomment = 0
-            blockcommentstart.pop() // pop the first /*
-            depthblockcomment++
-            var itterations = 0
-            val maxItterations = 1000
-            while (itterations <= maxItterations) {
-                if (TS.peek() == null) {
+            println("clearing comment token '$tokenSequence'")
+            tokenSequence.clear()
+        } else if (blockCommentStart.peek()) {
+            var depthBlockComment = 0
+            blockCommentStart.pop() // pop the first /*
+            depthBlockComment++
+            var iterations = 0
+            val maxiterations = 1000
+            while (iterations <= maxiterations) {
+                if (tokenSequence.peek() == null) {
                     lex.lex()
                     // Line is longer than allowed by code style (> 120 columns)
                     if (lex.currentLine == null) abort(
-                        "no more lines when expecting more lines, unterminated block commment"
+                        "no more lines when expecting more lines, unterminated block comment"
                     )
-                    TS.tokenList = parserPrep(lex.currentLine as String)
+                    tokenSequence.tokenList = parserPrep(lex.currentLine as String)
                 }
                 if (newline.peek()) newline.pop()
-                else if (blockcommentstart.peek()) {
-                    depthblockcomment++
-                    blockcommentstart.pop()
-                } else if (blockcommentend.peek()) {
-                    depthblockcomment--
-                    blockcommentend.pop()
-                    if (depthblockcomment == 0) {
+                else if (blockCommentStart.peek()) {
+                    depthBlockComment++
+                    blockCommentStart.pop()
+                } else if (blockCommentEnd.peek()) {
+                    depthBlockComment--
+                    blockCommentEnd.pop()
+                    if (depthBlockComment == 0) {
                         break
                     }
-                } else TS.pop()
-                itterations++
+                } else tokenSequence.pop()
+                iterations++
             }
-            if (itterations > maxItterations) abort("itterations expired")
-        } else if (emptyparens.peek()) {
-            println("popping empty parenthesis token '$emptyparens'")
-            expansion.append(emptyparens.toString())
-            emptyparens.pop()
+            if (iterations > maxiterations) abort("iterations expired")
+        } else if (emptyParenthesis.peek()) {
+            println("popping empty parenthesis token '$emptyParenthesis'")
+            expansion.append(emptyParenthesis.toString())
+            emptyParenthesis.pop()
         } else if (newline.peek()) {
             println("popping newline token '$newline'")
             newline.pop()
-        } else if ((space.peek() && TS.lineInfo.column == 1) || (TS.lineInfo.column == 1 && directive.peek())) {
+        } else if (
+            (space.peek() && tokenSequence.lineInfo.column == 1)
+            ||
+            (tokenSequence.lineInfo.column == 1 && directive.peek())
+        ) {
             /*
             5
 Constraints
@@ -109,125 +113,124 @@ comments or possibly other white-space characters in translation phase 3).
                 }
                 if (define.peek()) {
                     // case 2, define at start of line
-                    println("popping ${Macro().Directives().Define().value} statement '$TS'")
-                    processDefine("#$TS", macro)
-                    TS.clear()
+                    println("popping ${Macro().Directives().Define().value} statement '$tokenSequence'")
+                    processDefine("#$tokenSequence", macro)
+                    tokenSequence.clear()
                 }
             }
         } else {
             val index = macro.size - 1
-            val ss = TS.peek()
+            val ss = tokenSequence.peek()
             val name: String
-            if (ss == null) abort("somthing is wrong")
+            if (ss == null) abort("something is wrong")
             name = ss
             println("popping normal token '$name'")
             /*
             kotlin supports new line statements but functions MUST not contain
             a new line between the identifier and the left parenthesis
              */
-            val isalnum: Boolean = name.matches("[A-Za-z0-9]*".toRegex())
-            var macrofunctionexists = false
-            var macrofunctionindex = 0
-            var macroobjectexists = false
-            var macroobjectindex = 0
-            if (isalnum) {
-                macrofunctionindex = macroExists(
+            val isAlphaNumarical: Boolean = name.matches("[A-Za-z0-9]*".toRegex())
+            var macroFunctionExists = false
+            var macroFunctionIndex = 0
+            var macroObjectExists = false
+            var macroObjectIndex = 0
+            if (isAlphaNumarical) {
+                macroFunctionIndex = macroExists(
                     name,
                     Macro().Directives().Define().Types().Function,
                     index,
                     macro
                 )
                 if (globalVariables.currentMacroExists) {
-                    macrofunctionexists = true
+                    macroFunctionExists = true
                 } else {
-                    macroobjectindex = macroExists(
+                    macroObjectIndex = macroExists(
                         name,
                         Macro().Directives().Define().Types().Object,
                         index,
                         macro
                     )
                     if (globalVariables.currentMacroExists) {
-                        macroobjectexists = true
+                        macroObjectExists = true
                     }
                 }
             }
-            if (macroobjectexists || macrofunctionexists) {
-                var isfunction = false
+            if (macroObjectExists || macroFunctionExists) {
+                var isFunction = false
 
                 println("looking ahead")
-                val tSA = TS.clone()
-                val tSAspace = tSA.IsSequenceOneOrMany(" ")
-                val tSAleftparen = tSA.IsSequenceOnce("(")
-                tSA.pop() // pop the function name
-                if (tSAspace.peek()) tSAspace.pop() // pop any spaces in between
-                if (tSAleftparen.peek()) isfunction = true
+                val tsa = tokenSequence.clone()
+                val tsaSpace = tsa.IsSequenceOneOrMany(" ")
+                val tsaLeftParenthesis = tsa.IsSequenceOnce("(")
+                tsa.pop() // pop the function name
+                if (tsaSpace.peek()) tsaSpace.pop() // pop any spaces in between
+                if (tsaLeftParenthesis.peek()) isFunction = true
 
                 var skip = false
                 if (blacklist.contains(name)) skip = true
-                if (isfunction) {
-                    if (macrofunctionexists && !skip) {
-                        println("'${TS.peek()}' is a function")
+                if (isFunction) {
+                    if (macroFunctionExists && !skip) {
+                        println("'${tokenSequence.peek()}' is a function")
                         // we know that this is a function, proceed to attempt to extract all arguments
-                        var depthparenthesis = 0
-                        var depthbrace = 0
-                        var depthbracket = 0
-                        TS.pop() // pop the function name
+                        var depthParenthesis = 0
+                        var depthBrace = 0
+                        var depthBracket = 0
+                        tokenSequence.pop() // pop the function name
                         if (space.peek()) space.pop() // pop any spaces in between
-                        TS.pop() // pop the first (
-                        depthparenthesis++
-                        var itterations = 0
-                        val maxItterations = 100
+                        tokenSequence.pop() // pop the first (
+                        depthParenthesis++
+                        var iterations = 0
+                        val maxiterations = 100
                         var argc = 0
                         val argv: MutableList<String> = mutableListOf()
                         argv.add("")
-                        while (itterations <= maxItterations) {
+                        while (iterations <= maxiterations) {
                             if (newline.peek()) {
                                 newline.pop()
-                                val l = TS.peek()
-                                if (l == null) {
+                                if (tokenSequence.peek() == null) {
                                     println("ran out of tokens, grabbing more tokens from the next line")
                                     lex.lex()
                                     if (lex.currentLine == null) abort("no more lines when expecting more lines")
-                                    TS.tokenList = parserPrep(lex.currentLine as String)
+                                    tokenSequence.tokenList = parserPrep(lex.currentLine as String)
                                 }
                             }
-                            println("popping '${TS.peek()}'")
-                            if (leftparenthesis.peek()) {
-                                depthparenthesis++
-                                argv[argc] = argv[argc].plus(TS.pop())
-                            } else if (leftbrace.peek()) {
-                                depthbrace++
-                                argv[argc] = argv[argc].plus(TS.pop())
-                            } else if (leftbracket.peek()) {
-                                depthbracket++
-                                argv[argc] = argv[argc].plus(TS.pop())
-                            } else if (rightparenthesis.peek()) {
-                                depthparenthesis--
-                                if (depthparenthesis == 0) {
-                                    TS.pop()
+                            println("popping '${tokenSequence.peek()}'")
+                            if (leftParenthesis.peek()) {
+                                depthParenthesis++
+                                argv[argc] = argv[argc].plus(tokenSequence.pop())
+                            } else if (leftBrace.peek()) {
+                                depthBrace++
+                                argv[argc] = argv[argc].plus(tokenSequence.pop())
+                            } else if (leftBracket.peek()) {
+                                depthBracket++
+                                argv[argc] = argv[argc].plus(tokenSequence.pop())
+                            } else if (rightParenthesis.peek()) {
+                                depthParenthesis--
+                                if (depthParenthesis == 0) {
+                                    tokenSequence.pop()
                                     break
                                 }
-                                argv[argc] = argv[argc].plus(TS.pop())
-                            } else if (rightbrace.peek()) {
-                                depthbrace--
-                                argv[argc] = argv[argc].plus(TS.pop())
-                            } else if (rightbracket.peek()) {
-                                depthbracket--
-                                argv[argc] = argv[argc].plus(TS.pop())
+                                argv[argc] = argv[argc].plus(tokenSequence.pop())
+                            } else if (rightBrace.peek()) {
+                                depthBrace--
+                                argv[argc] = argv[argc].plus(tokenSequence.pop())
+                            } else if (rightBracket.peek()) {
+                                depthBracket--
+                                argv[argc] = argv[argc].plus(tokenSequence.pop())
                             } else if (comma.peek()) {
-                                if (depthparenthesis == 1) {
+                                if (depthParenthesis == 1) {
                                     argc++
                                     argv.add("")
                                     comma.pop()
-                                } else argv[argc] = argv[argc].plus(TS.pop())
-                            } else argv[argc] = argv[argc].plus(TS.pop())
-                            itterations++
+                                } else argv[argc] = argv[argc].plus(tokenSequence.pop())
+                            } else argv[argc] = argv[argc].plus(tokenSequence.pop())
+                            iterations++
                         }
-                        if (itterations > maxItterations) println("itterations expired")
+                        if (iterations > maxiterations) println("iterations expired")
                         argc++
                         println("argc = $argc")
                         println("argv = $argv")
-                        val macroTypeDependantIndex = macrofunctionindex
+                        val macroTypeDependantIndex = macroFunctionIndex
                         // Line is longer than allowed by code style (> 120 columns)
                         println(
                             "${macro[index].macros[macroTypeDependantIndex].token} of type " +
@@ -316,24 +319,24 @@ preprocessing file; no other preprocessing tokens are available.
                                 }
                             }
                         }
-                    } else if (macrofunctionexists && skip) {
+                    } else if (macroFunctionExists && skip) {
                         println("'$name' is a function but it is currently being expanded")
                         expansion.append(name)
-                        TS.pop() // pop the macro name
+                        tokenSequence.pop() // pop the macro name
                     } else {
                         println("'$name' is a function but no associated macro exists")
                         expansion.append(name)
-                        TS.pop() // pop the macro name
+                        tokenSequence.pop() // pop the macro name
                     }
                 } else {
                     println("'$name' is an object")
-                    TS.pop() // pop the macro name
-                    if (macroobjectexists) {
+                    tokenSequence.pop() // pop the macro name
+                    if (macroObjectExists) {
                         if (skip) {
                             println("but it is currently being expanded")
                             expansion.append(name)
                         } else {
-                            val macroTypeDependantIndex = macroobjectindex
+                            val macroTypeDependantIndex = macroObjectIndex
                             // Line is longer than allowed by code style (> 120 columns)
                             println(
                                 "${macro[index].macros[macroTypeDependantIndex].token} of type " +
@@ -375,11 +378,11 @@ preprocessing file; no other preprocessing tokens are available.
                         expansion.append(name)
                     }
                 }
-            } else expansion.append(TS.pop())
+            } else expansion.append(tokenSequence.pop())
         }
-        itterations++
+        iterations++
     }
-    if (itterations > maxItterations) println("itterations expired")
+    if (iterations > maxiterations) println("iterations expired")
     println("expansion = $expansion")
     return expansion.toString()
 }

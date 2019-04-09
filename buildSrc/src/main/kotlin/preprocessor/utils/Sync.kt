@@ -155,7 +155,7 @@ class Sync {
             )
             println("A : $a")
             println("B :     $b")
-            run returnpoint@{
+            run returnPoint@{
                 if (a.exists()) {
                     if (a.isDirectory) {
                         // ignore build dir in A
@@ -167,8 +167,8 @@ class Sync {
                                 println("kpp should not contain its own directory")
                                 println("deleting A")
                                 deleteRecursive(a)
-                                println("returning to @returnpoint")
-                                return@returnpoint
+                                println("returning to @returnPoint")
+                                return@returnPoint
                             } else {
                                 if (b.exists()) {
                                     println("entering $a")
@@ -177,15 +177,15 @@ class Sync {
                                     if (empty(a)) {
                                         println("deleting A")
                                         delete(a)
-                                        println("returning to @returnpoint")
-                                        return@returnpoint
+                                        println("returning to @returnPoint")
+                                        return@returnPoint
                                     }
                                 } else {
                                     println("B does not exist")
                                     println("deleting A")
                                     deleteRecursive(a)
-                                    println("returning to @returnpoint")
-                                    return@returnpoint
+                                    println("returning to @returnPoint")
+                                    return@returnPoint
                                 }
                             }
                         } else println("A is blocked")
@@ -193,13 +193,13 @@ class Sync {
                             if (blocked) {
                                 println("deleting A")
                                 deleteRecursive(a)
-                                println("returning to @returnpoint")
-                                return@returnpoint
+                                println("returning to @returnPoint")
+                                return@returnPoint
                             } else if (empty(a)) {
                                 println("deleting A")
                                 delete(a)
-                                println("returning to @returnpoint")
-                                return@returnpoint
+                                println("returning to @returnPoint")
+                                return@returnPoint
                             }
                         }
                     } else if (a.isFile) {
@@ -208,8 +208,8 @@ class Sync {
                             println("B does not exist")
                             println("deleting A")
                             delete(a)
-                            println("returning to @returnpoint")
-                            return@returnpoint
+                            println("returning to @returnPoint")
+                            return@returnPoint
                         }
                         // if extension is null, test every file
                         // ignore these extensions
@@ -239,14 +239,14 @@ class Sync {
                                         )
                                             abort()
                                     }
-                                    println("returning to @returnpoint")
-                                    return@returnpoint
+                                    println("returning to @returnPoint")
+                                    return@returnPoint
                                 } else {
                                     println("A contains DATA")
                                     println("processing A")
                                     if (a.extension == "") {
                                         println("error: cannot process a file with no extension")
-                                        return@returnpoint
+                                        return@returnPoint
                                     }
                                     macroList(globalVariables.kppMacroList)
                                     process(a.path, a.extension, globalVariables.kppMacroList)
@@ -259,14 +259,14 @@ class Sync {
                                             overwrite = true
                                         )
                                     )
-                                        println("returning to @returnpoint")
-                                    return@returnpoint
+                                        println("returning to @returnPoint")
+                                    return@returnPoint
                                 }
                             }
                         } else {
                             println("ignoring extension: ${a.extension}")
-                            println("returning to @returnpoint")
-                            return@returnpoint
+                            println("returning to @returnPoint")
+                            return@returnPoint
                         }
                     }
                 } else {
@@ -277,7 +277,7 @@ class Sync {
     }
 
     /**
-     * self exlanatory
+     * self explanatory
      *
      * this function finds and processes all source files in the directory **dir** with the extension **extension**
      * @param dir the directory to search in
@@ -295,7 +295,7 @@ class Sync {
 
 
     /**
-     * self exlanatory
+     * self explanatory
      *
      * this function finds and processes all source files in the directory **dir** with the extension **extension**
      * @param dir the directory to search in
@@ -311,7 +311,7 @@ class Sync {
     }
 
     /**
-     * self exlanatory
+     * self explanatory
      *
      * this function finds and processes all source files in the directory **dir** with the extension **extension**
      * @param dir the directory to search in
@@ -337,16 +337,16 @@ class Sync {
      * test if file **src** contains any preprocessor directives
      */
     private fun testFile(src: File): Boolean {
-        globalVariables.currentFileContainsPreprocesser = false
+        globalVariables.currentFileContainsPreprocessor = false
         println("testing file: ${src.path}")
         val lines: List<String> = Files.readAllLines(src.toPath())
         lines.forEach { line ->
             checkIfPreprocessorIsNeeded(line)
         }
-        return globalVariables.currentFileContainsPreprocesser
+        return globalVariables.currentFileContainsPreprocessor
     }
 
     private fun checkIfPreprocessorIsNeeded(line: String) {
-        if (line.trimStart().startsWith('#')) globalVariables.currentFileContainsPreprocesser = true
+        if (line.trimStart().startsWith('#')) globalVariables.currentFileContainsPreprocessor = true
     }
 }

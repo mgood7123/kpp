@@ -181,7 +181,7 @@ class Balanced {
         println("right balancer     = $lastRegisteredRightHandSideBalancer")
         println("start index        = $start")
         println("end index          = $end")
-        println("curent index       = $index")
+        println("current index       = $index")
         println("unmatched brackets = $countLeft")
         println("splitter count     = $splitterCount")
         println("splitter location  = $splitterLocation")

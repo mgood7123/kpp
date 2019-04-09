@@ -47,7 +47,7 @@ class Macro {
                 /**
                  * the Object type denotes the standard macro definition, in which all text is matched with
                  *
-                 * making **Object** lowercase conflists with the top level declaration **object**
+                 * making **Object** lowercase conflicts with the top level declaration **object**
                  *
                  * @see Types
                  * @see Function
@@ -57,7 +57,7 @@ class Macro {
                 @Suppress("PropertyName")
                 val Object: String = "object"
                 /**
-                 * the Function type denotes the Funtion macro definition, in which all text that is followed by
+                 * the Function type denotes the Function macro definition, in which all text that is followed by
                  * parentheses is matched with
                  *
                  * making **Function** lowercase must mean [Object] must also be lowercase
@@ -249,7 +249,7 @@ class Macro {
         }
 
         fun sizem() {
-            var c = arrayListOf(Macro())
+            val c = arrayListOf(Macro())
             c[0].fileName = "test1"
             realloc(c, c[0].size + 1)
             c[1].fileName = "test2"

@@ -7,7 +7,6 @@ tasks {
         group = "kotlin pre processor"
         description = "kotlin pre processor"
         doLast {
-            preprocessor.utils.core.realloc.ret()
             println("starting KOTLIN_PRE_PROCESSOR")
             globalVariables.abortOnComplete = false
             globalVariables.initGlobals(rootDir, projectDir)

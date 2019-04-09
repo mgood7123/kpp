@@ -15,7 +15,7 @@ import java.util.ArrayList
  * the result is saved in "$src${globalVariables.preprocessedExtension}$extensions"
  *
  * @param src the file to be modified
- * @param extension the extention of file specified in **src**
+ * @param extension the extension of file specified in **src**
  * @param macro a [Macro] array
  */
 fun process(
@@ -64,10 +64,9 @@ fun processDefine(line: String, macro: ArrayList<Macro>) {
     var macroIndex = macro[index].macros[0].size
     // to include the ability to redefine existing definitions, we must save to local variables first
     val fullMacro: String = line.trimStart().drop(1).trimStart()
-    var type: String
     // determine token type
     // Line is longer than allowed by code style (> 120 columns)
-    type = if (fullMacro.substringAfter(' ')
+    val type: String = if (fullMacro.substringAfter(' ')
             .trimStart()
             .substringBefore(' ')
             .trimStart() == fullMacro.substringAfter(' ')
@@ -89,8 +88,8 @@ fun processDefine(line: String, macro: ArrayList<Macro>) {
             empty = true
         }
         val i = macroExists(token, type, index, macro)
-        if (globalVariables.currentMacroExists) {
-            macroIndex = i
+        macroIndex = if (globalVariables.currentMacroExists) {
+            i
         } else {
             if (macro[index].macros[macroIndex].fullMacro != null) {
                 realloc(
@@ -98,7 +97,7 @@ fun processDefine(line: String, macro: ArrayList<Macro>) {
                     macro[index].macros[0].size + 1
                 )
             }
-            macroIndex = macro[index].macros[0].size
+            macro[index].macros[0].size
         }
         macro[index].macros[macroIndex].fullMacro = line.trimStart().trimEnd()
         macro[index].macros[macroIndex].token = token
@@ -112,8 +111,8 @@ fun processDefine(line: String, macro: ArrayList<Macro>) {
         token =
             fullMacro.substringAfter(' ').substringBefore('(').trimStart()
         val i = macroExists(token, type, index, macro)
-        if (globalVariables.currentMacroExists) {
-            macroIndex = i
+        macroIndex = if (globalVariables.currentMacroExists) {
+            i
         } else {
             if (macro[index].macros[macroIndex].fullMacro != null) {
                 realloc(
@@ -121,7 +120,7 @@ fun processDefine(line: String, macro: ArrayList<Macro>) {
                     macro[index].macros[0].size + 1
                 )
             }
-            macroIndex = macro[index].macros[0].size
+            macro[index].macros[0].size
         }
         macro[index].macros[macroIndex].fullMacro = line.trimStart().trimEnd()
         macro[index].macros[macroIndex].token = token

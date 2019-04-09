@@ -58,7 +58,7 @@ class Lexer(stm: ByteBuffer, delimiter: String) {
         var line: Int = Default().line
     }
 
-    private var lineinfo: InternalLineInfo = InternalLineInfo()
+    private var lineInfo: InternalLineInfo = InternalLineInfo()
 
     /**
      * returns an exact duplicate of the current [Lexer]
@@ -70,8 +70,8 @@ class Lexer(stm: ByteBuffer, delimiter: String) {
     /**
      * returns a duplicate of this [Lexer] with the specified delimiters
      */
-    fun clone(newdelimiters: String): Lexer {
-        return Lexer(this.f.duplicate(), newdelimiters)
+    fun clone(newDelimiters: String): Lexer {
+        return Lexer(this.f.duplicate(), newDelimiters)
     }
 
     /**
@@ -89,19 +89,19 @@ class Lexer(stm: ByteBuffer, delimiter: String) {
         character by character, appending each to a buffer, then returning
         that buffer when a specific delimiter is found
         */
-        val isdelim = false
+        val isDelimiter = false
         if (f.remaining() == 0) {
             currentLine = null
             return
         }
         val b = StringBuffer()
-        while (f.remaining() != 0 && !isdelim) {
+        while (f.remaining() != 0 && !isDelimiter) {
             val s = f.get().toChar().toString()
             b.append(s)
             if (s == "\n") {
-                lineinfo.column = lineinfo.Default().column
-                lineinfo.line++
-            } else lineinfo.column++
+                lineInfo.column = lineInfo.Default().column
+                lineInfo.line++
+            } else lineInfo.column++
             if (d.contains(s)) break
         }
         currentLine = b.toString()

@@ -22,7 +22,7 @@ fun parserPrep(line: String): ArrayDeque<String> {
 }
 
 /**
- * a minimal Parser implementiation
+ * a minimal Parser implementation
  * @param tokens a list of tokens to split by
  * @see preprocessor.globals.Globals.tokens
  * @see Lexer
@@ -69,7 +69,7 @@ class Parser(tokens: ArrayDeque<String>) {
     var lineInfo: InternalLineInfo = InternalLineInfo()
 
     /**
-     * @return a new independant instance of the current [Parser]
+     * @return a new independent instance of the current [Parser]
      */
     fun clone(): Parser {
         val result = StringBuffer()
@@ -200,7 +200,7 @@ class Parser(tokens: ArrayDeque<String>) {
         private val sg: String = str
 
         /**
-         * returns the accumalative value of [IsSequenceOnce.toString]
+         * returns the accumulative value of [IsSequenceOnce.toString]
          *
          * the original [tokenList] is [cloned][Parser.clone] to prevent modifications to the original [list][tokenList]
          *
@@ -285,7 +285,7 @@ class Parser(tokens: ArrayDeque<String>) {
         private val sg = str
 
         /**
-         * returns the accumalative value of [Parser.peek] and [Parser.pop]
+         * returns the accumulative value of [Parser.peek] and [Parser.pop]
          *
          * the original [tokenList] is [cloned][Parser.clone] to prevent modifications to the original [list][tokenList]
          *

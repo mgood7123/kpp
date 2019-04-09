@@ -1,13 +1,12 @@
 package preprocessor.utils.extra
 
-import preprocessor.core.Macro
 import preprocessor.utils.core.abort
 import java.util.ArrayList
 
 /**
  * extracts the arguments of a function and puts them into an array
  *
- * @returns an array of paramaters
+ * @returns an array of parameters
  */
 fun extractArguments(arg: String): ArrayList<String>? {
     fun filterSplit(arg: String, ex: Balanced, b: Balanced.BalanceList): ArrayList<String> {

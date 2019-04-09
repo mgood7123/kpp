@@ -51,7 +51,7 @@ class Globals {
     var preprocessedExtension: String = ".preprocessed"
 
     /**
-     * inits the global variables
+     * initializes the global variables
      *
      * it is recommended to call this function as `Globals().initGlobals(rootDir, projectDir)`
      *
@@ -70,13 +70,13 @@ class Globals {
     /**
      * this is used by [testFile][preprocessor.utils.Sync.testFile]
      */
-    var currentFileContainsPreprocesser: Boolean = false
+    var currentFileContainsPreprocessor: Boolean = false
     /**
      *
      *//*
     TODO: implement file cache
     var currentFileIsCashed: Boolean = false
-    var cachedFileContainsPreprocesser: Boolean = false
+    var cachedFileContainsPreprocessor: Boolean = false
      */
     var firstLine: Boolean = true
     /**
