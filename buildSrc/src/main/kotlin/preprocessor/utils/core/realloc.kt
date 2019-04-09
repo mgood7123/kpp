@@ -41,7 +41,7 @@ fun <E> realloc(v: kotlin.collections.MutableList<E?>, size: Int, isNullable: Bo
                         is Double -> 0.0
                         is Char -> java.lang.Character.MIN_VALUE // null ('\0') as char
                         is Boolean -> false
-                        else -> if (isNullable) null else abort("unknown non-nullable type: $type")
+                        else -> abort("unknown non-nullable type: $type")
                     } as E
                 } else {
                     v[0]!!::class.java.newInstance() as E
