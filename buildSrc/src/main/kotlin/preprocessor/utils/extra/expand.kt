@@ -27,8 +27,8 @@ fun expand(
     println("ARG = $ARG")
     val expansion = StringBuffer()
     var iterations = 0
-    val maxiterations = 100
-    while (iterations <= maxiterations && tokenSequence.peek() != null) {
+    val maxIterations = 100
+    while (iterations <= maxIterations && tokenSequence.peek() != null) {
         val space = tokenSequence.IsSequenceOneOrMany(" ")
         val newline = tokenSequence.IsSequenceOnce("\n")
         val directive = tokenSequence.IsSequenceOnce("#")
@@ -52,8 +52,8 @@ fun expand(
             blockCommentStart.pop() // pop the first /*
             depthBlockComment++
             var iterations = 0
-            val maxiterations = 1000
-            while (iterations <= maxiterations) {
+            val maxIterations = 1000
+            while (iterations <= maxIterations) {
                 if (tokenSequence.peek() == null) {
                     lex.lex()
                     // Line is longer than allowed by code style (> 120 columns)
@@ -75,7 +75,7 @@ fun expand(
                 } else tokenSequence.pop()
                 iterations++
             }
-            if (iterations > maxiterations) abort("iterations expired")
+            if (iterations > maxIterations) abort("iterations expired")
         } else if (emptyParenthesis.peek()) {
             println("popping empty parenthesis token '$emptyParenthesis'")
             expansion.append(emptyParenthesis.toString())
@@ -180,11 +180,11 @@ comments or possibly other white-space characters in translation phase 3).
                         tokenSequence.pop() // pop the first (
                         depthParenthesis++
                         var iterations = 0
-                        val maxiterations = 100
+                        val maxIterations = 100
                         var argc = 0
                         val argv: MutableList<String> = mutableListOf()
                         argv.add("")
-                        while (iterations <= maxiterations) {
+                        while (iterations <= maxIterations) {
                             if (newline.peek()) {
                                 newline.pop()
                                 if (tokenSequence.peek() == null) {
@@ -226,7 +226,7 @@ comments or possibly other white-space characters in translation phase 3).
                             } else argv[argc] = argv[argc].plus(tokenSequence.pop())
                             iterations++
                         }
-                        if (iterations > maxiterations) println("iterations expired")
+                        if (iterations > maxIterations) println("iterations expired")
                         argc++
                         println("argc = $argc")
                         println("argv = $argv")
@@ -382,7 +382,7 @@ preprocessing file; no other preprocessing tokens are available.
         }
         iterations++
     }
-    if (iterations > maxiterations) println("iterations expired")
+    if (iterations > maxIterations) println("iterations expired")
     println("expansion = $expansion")
     return expansion.toString()
 }
