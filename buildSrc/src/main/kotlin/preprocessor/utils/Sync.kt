@@ -248,9 +248,7 @@ class Sync {
                                         println("error: cannot process a file with no extension")
                                         return@returnPoint
                                     }
-                                    macroList(globalVariables.kppMacroList)
                                     process(a.path, a.extension, globalVariables.kppMacroList)
-                                    macroList(globalVariables.kppMacroList)
                                     println("moving resulting preprocessing file A to B (renamed)")
                                     if (!mv(
                                             a.path + globalVariables.preprocessedExtension + "." + a.extension,

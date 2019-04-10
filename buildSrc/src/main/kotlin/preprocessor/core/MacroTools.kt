@@ -1,81 +1,65 @@
-@file:Suppress("unused")
-
 package preprocessor.core
 
 import preprocessor.base.globalVariables
 import preprocessor.utils.core.abort
-import preprocessor.utils.core.realloc
+import java.util.ArrayList
 
 /**
  *
  * This class is used to house all macro definitions
  *
- * @sample Tests.generalUsage
+ * @sample tests.generalUsage
  *
  * @see Directives
- * @see Directives.Define
+ * @see Define
  *
  */
-class Macro {
+class Macro() {
     /**
      * this class is used to obtain predefined values such as directive names and types
      *
      * all preprocessor directives start with a #
      * @see Define
      */
-    @Suppress("MemberVisibilityCanBePrivate")
-    inner class Directives {
+    inner class Directives() {
         /**
-         * contains predefined [values][Define.value] and [types][Define.Types] for the
-         * [#define][Define.value] directive
+         * contains predefined [values][Define.value] and [types][Define.Types] for the [#define][Define.value] directive
          * @see Directives
          */
-        inner class Define {
+        inner class Define() {
             /**
              * the ***#define*** directive associates an identifier to a replacement list
-             * the Default value of this is **define**
+             * the default value of this is **define**
              * @see Types
              */
-            val value: String = "define"
+            val value : String = "define"
 
             /**
              * the valid types of a definition directive macro
-             * @see Object
-             * @see Function
+             * @see OBJECT
+             * @see FUNCTION
              */
-            inner class Types {
+            inner class Types() {
                 /**
                  * the Object type denotes the standard macro definition, in which all text is matched with
                  *
-                 * making **Object** lowercase conflicts with the top level declaration **object**
-                 *
                  * @see Types
-                 * @see Function
-                 * @sample objectSample
-                 * @sample objectUsage
+                 * @see FUNCTION
+                 * @sample ObjectSample
+                 * @sample ObjectUsage
                  */
-                @Suppress("PropertyName")
-                val Object: String = "object"
+                val Object : String = "object"
                 /**
-                 * the Function type denotes the Function macro definition, in which all text that is followed by
-                 * parentheses is matched with
-                 *
-                 * making **Function** lowercase must mean [Object] must also be lowercase
-                 * to maintain naming pairs (as **Object, function**, and **object, Function**
-                 * just looks weird)
-                 *
-                 * unfortunately this is impossible as it would conflict with the top level
-                 * declaration **object**
+                 * the Function type denotes the Funtion macro definition, in which all text that is followed by parentheses is matched with
                  *
                  * @see Types
-                 * @see Object
-                 * @sample functionSample
-                 * @sample functionUsage
+                 * @see OBJECT
+                 * @sample FunctionSample
+                 * @sample FunctionUsage
                  */
-                @Suppress("PropertyName")
-                val Function: String = "function"
+                val Function : String = "function"
 
-                private fun objectSample() {
+                private fun ObjectSample() {
                     /* ignore this block comment
 
                     #define object value
@@ -84,9 +68,8 @@ class Macro {
 
                     ignore this block comment */
                 }
-
-                private fun objectUsage() {
-                    val c = arrayListOf(Macro())
+                private fun ObjectUsage() {
+                    var c = arrayListOf(Macro())
                     c[0].fileName = "test"
                     c[0].macros[0].fullMacro = "A B00"
                     c[0].macros[0].token = "A"
@@ -95,8 +78,7 @@ class Macro {
                         Macro().Directives().Define().Types().Object
                     println(c[0].macros[0].type)
                 }
-
-                private fun functionSample() {
+                private fun FunctionSample() {
                     /* ignore this block comment
 
                     #define object value
@@ -106,9 +88,8 @@ class Macro {
 
                     ignore this block comment */
                 }
-
-                private fun functionUsage() {
-                    val c = arrayListOf(Macro())
+                private fun FunctionUsage() {
+                    var c = arrayListOf(Macro())
                     c[0].fileName = "test"
                     c[0].macros[0].fullMacro = "A() B00"
                     c[0].macros[0].token = "A"
@@ -125,17 +106,17 @@ class Macro {
      * the internals of the Macro class
      *
      * this is where all macros are kept, this is managed via [realloc]
-     * @sample Tests.generalUsage
+     * @sample tests.generalUsage
      */
-    inner class MacroInternal {
+    inner class macroInternal() {
         /**
-         * the current size of the [macro][MacroInternal] list
+         * the current size of the [macro][macroInternal] list
          *
          * can be used to obtain the last added macro
          *
-         * @sample Tests.sizem
+         * @sample tests.sizem
          */
-        var size: Int = 0
+        var size : Int = 0
         /**
          * the full macro definition
          *
@@ -153,91 +134,124 @@ class Macro {
         /**
          * contains the definition **arguments**,
          * valid only for
-         * [Function][Macro.Directives.Define.Types.Function]
+         * [Function][Macro.Directives.Define.Types.FUNCTION]
          * type definitions
          *
          * this defaults to **null**
          *
          */
-        var arguments: ArrayList<String>? = null
+        var arguments : ArrayList<String>? = null
         /**
          * this contains the definition replacement list
          */
         var replacementList: String? = null
-    }
 
+        /**
+         * this adds a new macro to the [macro][macroInternal] list
+         *
+         * implementation of the C function **realloc**
+         *
+         * allocation is recorded in [size][Macro.macroInternal.size] paramater
+         *
+         * @param m [internal macro list][macroInternal]
+         * @param NewSize the new [size][macroInternal.size] to allocate the [internal macro list][macroInternal] to
+         * @see <a href="http://man7.org/linux/man-pages/man3/realloc.3p.html">realloc (C function)</a>
+         * @sample tests.reallocUsageInternal
+         * @return the given [macro][macroInternal] list, allocated to **newSize**
+         */
+        fun realloc(m : ArrayList<macroInternal>, newSize : Int) : ArrayList<macroInternal> {
+            m.add(macroInternal())
+            m[0].size = newSize
+            return m
+        }
+    }
     /**
      * the current size of the [macro][Macro] list
      *
-     * can be used to obtain the last added [macro group][MacroInternal]
+     * can be used to obtain the last added [macro group][macroInternal]
      *
-     * @sample Tests.size
+     * @sample tests.size
      */
-    var size: Int = 0
+    var size : Int = 0
     /**
      * the name of the file containing this [macro][Macro] list
      */
     var fileName: String? = null
     /**
-     * the [macro][MacroInternal] list
+     * the [macro][macroInternal] list
      */
-    var macros: ArrayList<MacroInternal>
+    var macros: ArrayList<macroInternal>
 
     init {
         this.size = 1
-        macros = arrayListOf(MacroInternal())
+        macros = arrayListOf(macroInternal())
+    }
+    /**
+     * this adds a new macro to the [macro][Macro] list
+     *
+     * implementation of the C function realloc
+     *
+     * allocation is recorded in [size][Macro.size] paramater
+     *
+     * @param m [macro list][Macro]
+     * @param NewSize the new [size][Macro.size] to allocate the [macro list][Macro] to
+     * @see <a href="http://man7.org/linux/man-pages/man3/realloc.3p.html">realloc (C function)</a>
+     * @sample tests.reallocUsage
+     * @return the given macro list, allocated to newSize
+     */
+    fun realloc(m : ArrayList<Macro>, NewSize : Int) : ArrayList<Macro> {
+        m.add(Macro())
+        m[0].size = NewSize
+        return m
     }
 
-    private class Tests {
+    private class tests {
         fun generalUsage() {
-            val c = arrayListOf(Macro())
+            var c = arrayListOf(Macro())
             c[0].fileName = "test"
             c[0].macros[0].fullMacro = "A B"
             c[0].macros[0].token = "A"
             c[0].macros[0].replacementList = "B00"
             println(c[0].macros[0].replacementList)
-            realloc(c, c[0].size + 1)
+            c = c[0].realloc(c, c[0].size + 1)
             c[1].fileName = "test"
             c[1].macros[0].fullMacro = "A B"
             c[1].macros[0].token = "A"
             c[1].macros[0].replacementList = "B10"
             println(c[1].macros[0].replacementList)
-            realloc(c[1].macros, c[1].macros[0].size + 1)
+            c[1].macros = c[1].macros[0].realloc(c[1].macros, c[1].macros[0].size + 1)
             c[1].fileName = "test"
             c[1].macros[1].fullMacro = "A B"
             c[1].macros[1].token = "A"
             c[1].macros[1].replacementList = "B11"
             println(c[1].macros[1].replacementList)
-            realloc(c[1].macros, c[1].macros[0].size + 1)
+            c[1].macros = c[1].macros[0].realloc(c[1].macros, c[1].macros[0].size + 1)
             c[1].fileName = "test"
             c[1].macros[2].fullMacro = "A B"
             c[1].macros[2].token = "A"
             c[1].macros[2].replacementList = "B12"
             println(c[1].macros[2].replacementList)
         }
-
         fun reallocUsage() {
-            val c = arrayListOf(Macro())
+            var c = arrayListOf(Macro())
             // allocate a new index
-            realloc(c, c[0].size + 1)
+            c = c[0].realloc(c, c[0].size + 1)
             // assign some values
             c[0].fileName = "test"
             c[1].fileName = "test"
         }
-
         fun reallocUsageInternal() {
-            val c = arrayListOf(Macro())
+            var c = arrayListOf(Macro())
             // allocate a new index
-            realloc(c[0].macros, c[0].macros[0].size + 1)
+            c[0].macros = c[0].macros[0].realloc(c[0].macros, c[0].macros[0].size + 1)
             // assign some values
             c[0].macros[0].fullMacro = "A A"
             c[0].macros[1].fullMacro = "A B"
         }
-
         fun size() {
-            val c = arrayListOf(Macro())
+            var c = arrayListOf(Macro())
             // allocate a new macro
-            realloc(c[0].macros, c[0].macros[0].size + 1)
+            c[0].macros = c[0].macros[0].realloc(c[0].macros, c[0].macros[0].size + 1)
             c[0].macros[1].fullMacro = "A B"
             println(c[0].macros[1].replacementList)
             // obtain base index
@@ -247,11 +261,10 @@ class Macro {
             if (c[index].macros[macroIndex].fullMacro.equals(c[0].macros[1].fullMacro))
                 println("index matches")
         }
-
         fun sizem() {
-            val c = arrayListOf(Macro())
+            var c = arrayListOf(Macro())
             c[0].fileName = "test1"
-            realloc(c, c[0].size + 1)
+            c = c[0].realloc(c, c[0].size + 1)
             c[1].fileName = "test2"
             val index = c[0].size - 1
             if (c[index].fileName.equals(c[1].fileName))
@@ -263,28 +276,20 @@ class Macro {
 /**
  * checks if the desired macro exists in the [Macro] list
  */
-fun macroExists(token: String, type: String, index: Int, macro: ArrayList<Macro>): Int {
+fun macroExists(token : String, type : String, index : Int, MACRO : ArrayList<Macro>) : Int {
     // used to detect existing definitions for #define
     globalVariables.currentMacroExists = false
     // if empty return 0 and do not set globalVariables.currentMacroExists
-    if (macro[index].macros[0].fullMacro == null) return 0
+    if (MACRO[index].macros[0].fullMacro == null) return 0
     var i = 0
-    while (i <= macro[index].macros.lastIndex) {
-        if (macro[index].macros[i].token.equals(token) && macro[index].macros[i].type.equals(type)) {
-            // Line is longer than allowed by code style (> 120 columns)
-            println(
-                "token and type matches existing definition ${macro[index].macros[i].token} type " +
-                        "${macro[index].macros[i].type}"
-            )
+    while (i <= MACRO[index].macros.lastIndex) {
+        if (MACRO[index].macros[i].token.equals(token) && MACRO[index].macros[i].type.equals(type)) {
+            println("token and type matches existing definition ${MACRO[index].macros[i].token} type ${MACRO[index].macros[i].type}")
             globalVariables.currentMacroExists = true
             println("returning $i")
             return i
         }
-        // Line is longer than allowed by code style (> 120 columns)
-        else println(
-            "token $token or type $type does not match current definition token " +
-                    "${macro[index].macros[i].token} type ${macro[index].macros[i].type}"
-        )
+        else println("token $token or type $type does not match current definition token ${MACRO[index].macros[i].token} type ${MACRO[index].macros[i].type}")
         i++
     }
     return i
@@ -293,115 +298,74 @@ fun macroExists(token: String, type: String, index: Int, macro: ArrayList<Macro>
 /**
  * lists the current macros in a [Macro] list
  */
-fun macroList(index: Int = 0, macro: ArrayList<Macro>) {
-    if (macro[index].macros[0].fullMacro == null) return
-    println("LISTING macros")
+fun macroList(index : Int = 0, MACRO : ArrayList<Macro>) {
+    if (MACRO[index].macros[0].fullMacro == null) return
+    println("LISTING MACROS")
     var i = 0
-    while (i <= macro[index].macros.lastIndex) {
-        println("[$i].fullMacro  = ${macro[index].macros[i].fullMacro}")
-        println("[$i].type       = ${macro[index].macros[i].type}")
-        println("[$i].token      = ${macro[index].macros[i].token}")
-        if (macro[index].macros[i].arguments != null)
-            println("[$i].arguments  = ${macro[index].macros[i].arguments}")
-        println("[$i].replacementList      = ${macro[index].macros[i].replacementList}")
+    while (i <= MACRO[index].macros.lastIndex) {
+        println("[$i].fullMacro  = ${MACRO[index].macros[i].fullMacro}")
+        println("[$i].Type       = ${MACRO[index].macros[i].type}")
+        println("[$i].token      = ${MACRO[index].macros[i].token}")
+        if (MACRO[index].macros[i].arguments != null)
+            println("[$i].Arguments  = ${MACRO[index].macros[i].arguments}")
+        println("[$i].replacementList      = ${MACRO[index].macros[i].replacementList}")
         i++
     }
-    println("LISTED macros")
-}
-
-/**
- * lists the current macros in a [Macro] list
- *
- * this version lists ALL [Macro]s in the current [Macro] list in all available file index's
- */
-fun macroList(macro: ArrayList<Macro>) {
-    if (macro.size == 0) {
-        println("macro list is empty")
-        return
-    }
-    var i = 0
-    while (i < macro.size) {
-        if (macro[i].fileName == null) {
-            println("macro list for index $i is incomplete")
-            break
-        }
-        println("LISTING macros for file ${macro[i].fileName}")
-        macroList(i, macro)
-        println("LISTED macros for file ${macro[i].fileName}")
-        i++
-    }
+    println("LISTED MACROS")
 }
 
 /**
  * converts a pair of [ArrayList]'s into a [Macro] array
  */
-fun toMacro(macro_arguments: ArrayList<String>?, actual_arguments: ArrayList<String>?): ArrayList<Macro> {
-    // Line is longer than allowed by code style (> 120 columns)
-    println(
-        "${macro_arguments!!.size} == ${actual_arguments!!.size} is " +
-                "${macro_arguments.size == actual_arguments.size}"
-    )
-    if (macro_arguments.size != actual_arguments.size) {
-        abort("size mismatch: expected ${macro_arguments.size}, got ${actual_arguments.size}")
+fun toMacro(macro_arguments : ArrayList<String>?, actual_arguments : ArrayList<String>?) : ArrayList<Macro> {
+    println("${macro_arguments!!.size} == ${actual_arguments!!.size} is ${macro_arguments!!.size == actual_arguments!!.size}")
+    if ((macro_arguments!!.size == actual_arguments!!.size) == false) {
+        abort("size mismatch: expected ${macro_arguments!!.size}, got ${actual_arguments
+        !!.size}")
     }
-    val associatedArguments = arrayListOf(Macro())
+    var associated_arguments = arrayListOf(Macro())
     var i = 0
-    associatedArguments[0].macros[i].fullMacro =
-        "${Macro().Directives().Define().value} ${macro_arguments[i]} ${actual_arguments[i]}"
-    associatedArguments[0].macros[i].type = Macro().Directives().Define().Types().Object
-    associatedArguments[0].macros[i].token = macro_arguments[i]
-    associatedArguments[0].macros[i].replacementList = actual_arguments[i]
+    associated_arguments[0].macros[i].fullMacro = "define ${macro_arguments[i]} ${actual_arguments[i]}"
+    associated_arguments[0].macros[i].type = Macro().Directives().Define().Types().Object
+    associated_arguments[0].macros[i].token = macro_arguments[i]
+    associated_arguments[0].macros[i].replacementList = actual_arguments[i]
     i++
     while (i <= macro_arguments.lastIndex) {
-        // Line is longer than allowed by code style (> 120 columns)
-        realloc(
-            associatedArguments[0].macros,
-            associatedArguments[0].macros[0].size + 1
-        )
-        associatedArguments[0].macros[i].fullMacro =
-            "${Macro().Directives().Define().value} ${macro_arguments[i]} ${actual_arguments[i]}"
-        associatedArguments[0].macros[i].type = Macro().Directives().Define().Types().Object
-        associatedArguments[0].macros[i].token = macro_arguments[i]
-        associatedArguments[0].macros[i].replacementList = actual_arguments[i]
+        associated_arguments[0].macros = associated_arguments[0].macros[0].realloc(associated_arguments[0].macros, associated_arguments[0].macros[0].size+1)
+        associated_arguments[0].macros[i].fullMacro = "define ${macro_arguments[i]} ${actual_arguments[i]}"
+        associated_arguments[0].macros[i].type = Macro().Directives().Define().Types().Object
+        associated_arguments[0].macros[i].token = macro_arguments[i]
+        associated_arguments[0].macros[i].replacementList = actual_arguments[i]
         i++
     }
-    macroList(macro = associatedArguments)
-    return associatedArguments
+    macroList(MACRO = associated_arguments)
+    return associated_arguments
 }
 
 /**
  * converts an [ArrayList] and a [List] into a [Macro] array
  */
-fun toMacro(macro_arguments: ArrayList<String>?, actual_arguments: List<String>?): ArrayList<Macro> {
-    // Line is longer than allowed by code style (> 120 columns)
-    println(
-        "${macro_arguments!!.size} == ${actual_arguments!!.size} is " +
-                "${macro_arguments.size == actual_arguments.size}"
-    )
-    if (macro_arguments.size != actual_arguments.size) {
-        abort("size mismatch: expected ${macro_arguments.size}, got ${actual_arguments.size}")
+fun toMacro(macro_arguments : ArrayList<String>?, actual_arguments : List<String>?) : ArrayList<Macro> {
+    println("${macro_arguments!!.size} == ${actual_arguments!!.size} is ${macro_arguments!!.size == actual_arguments!!.size}")
+    if ((macro_arguments!!.size == actual_arguments!!.size) == false) {
+        abort("size mismatch: expected ${macro_arguments!!.size}, got ${actual_arguments
+        !!.size}")
     }
-    val associatedArguments = arrayListOf(Macro())
+    var associated_arguments = arrayListOf(Macro())
     var i = 0
-    associatedArguments[0].macros[i].fullMacro =
-        "${Macro().Directives().Define().value} ${macro_arguments[i]} ${actual_arguments[i]}"
-    associatedArguments[0].macros[i].type = Macro().Directives().Define().Types().Object
-    associatedArguments[0].macros[i].token = macro_arguments[i]
-    associatedArguments[0].macros[i].replacementList = actual_arguments[i]
+    associated_arguments[0].macros[i].fullMacro = "define ${macro_arguments[i]} ${actual_arguments[i]}"
+    associated_arguments[0].macros[i].type = Macro().Directives().Define().Types().Object
+    associated_arguments[0].macros[i].token = macro_arguments[i]
+    associated_arguments[0].macros[i].replacementList = actual_arguments[i]
     i++
     while (i <= macro_arguments.lastIndex) {
-        // Line is longer than allowed by code style (> 120 columns)
-        realloc(
-            associatedArguments[0].macros,
-            associatedArguments[0].macros[0].size + 1
-        )
-        associatedArguments[0].macros[i].fullMacro =
-            "${Macro().Directives().Define().value} ${macro_arguments[i]} ${actual_arguments[i]}"
-        associatedArguments[0].macros[i].type = Macro().Directives().Define().Types().Object
-        associatedArguments[0].macros[i].token = macro_arguments[i]
-        associatedArguments[0].macros[i].replacementList = actual_arguments[i]
+        associated_arguments[0].macros = associated_arguments[0].macros[0].realloc(associated_arguments[0].macros, associated_arguments[0].macros[0].size+1)
+        associated_arguments[0].macros[i].fullMacro = "define ${macro_arguments[i]} ${actual_arguments[i]}"
+        associated_arguments[0].macros[i].type = Macro().Directives().Define().Types().Object
+        associated_arguments[0].macros[i].token = macro_arguments[i]
+        associated_arguments[0].macros[i].replacementList = actual_arguments[i]
         i++
     }
-    macroList(macro = associatedArguments)
-    return associatedArguments
+    macroList(MACRO = associated_arguments)
+    return associated_arguments
 }
